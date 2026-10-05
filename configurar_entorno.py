@@ -73,8 +73,8 @@ def main():
     print("\nListo. Próximos pasos:")
     if env_nuevo:
         print("  - Abre el archivo .env y escribe tu usuario y clave de la BDE del Banco Central.")
-    print(f"  - Activa el entorno:      {activar}")
-    print("  - Descarga los datos:     python extraccion/E_BCCH.py")
+    print("  - En VS Code: Select Interpreter → .venv (la terminal se activará sola)")
+    print(f"  - Fuera de VS Code:       {activar}")
 
 
 if __name__ == "__main__":
