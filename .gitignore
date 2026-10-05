@@ -16,4 +16,6 @@ venv/
  
 # Sistema operativo / editores
 .DS_Store
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
