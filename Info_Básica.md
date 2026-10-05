@@ -30,3 +30,9 @@ Utilizando el comando:
             ctrl + shift + g 
 
 Podemos guardar y añadir los commit que estaremos trabajando. 
+
+Ahora para desactivar todo lo que hemos realizado, en la terminal colocar
+
+            desactivate 
+
+Con esto se sale del entorno y ya no se está realizando ningún script ni nada por el estilo. 
