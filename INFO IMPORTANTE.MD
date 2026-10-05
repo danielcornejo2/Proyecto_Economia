@@ -12,7 +12,9 @@ El proyecto construye un flujo automatizado y reproducible **API → SQL → Pyt
 ## Integrantes
 
 - Daniel Cornejo
-- _(completar)_
+- Catarí Garrido 
+- Francisca Silva 
+- Laura Ruiz  
 
 ## Estructura del repositorio
 
@@ -32,7 +34,11 @@ Proyecto_Economia/
 
 ### Requisitos previos
 
-- **Python 3.9 o superior** (`python3 --version` para verificar).
+- **Visual Studio Code** con la extensión de Python. Al abrir el proyecto, VS Code
+  sugerirá instalar las extensiones recomendadas y activará el entorno `.venv`
+  automáticamente en cada terminal.
+
+- **Python 3.10 o superior** (`python3 --version` para verificar).
 - **Cuenta en la API de la Base de Datos Estadísticos (BDE)** del Banco Central de Chile. Es gratuita: regístrate en <https://si3.bcentral.cl/estadisticas/Principal1/Web_Services/index.htm>.
 
 ### 1. Clonar el repositorio
