@@ -31,7 +31,7 @@ CARPETA_SALIDA = Path("data/raw")
 # Completen el resto con los códigos que encuentren usando --buscar.
 SERIES = {
     "tpm": "F022.TPM.TIN.D001.NO.Z.M",          # Tasa de política monetaria, promedio mensual
-    "dolar_observado": "F073.TCO.PRE.Z.M",      # Tipo de cambio dólar observado, promedio mensual
+    "dolar_observado": "F073.TCO.PRE.HIST.M",      # Tipo de cambio dólar observado, promedio mensual
     # "ipc": "COMPLETAR",
     # "imacec": "COMPLETAR",
     # "desempleo": "COMPLETAR",
