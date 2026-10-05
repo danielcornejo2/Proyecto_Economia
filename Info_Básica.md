@@ -23,3 +23,10 @@
             cd "ACÁ SELECCIONAR LA RUTA LOCAL DE LA CARPETA"
 
 
+## Agregar cosas dentro del repositorio 
+
+Utilizando el comando: 
+
+            ctrl + shift + g 
+
+Podemos guardar y añadir los commit que estaremos trabajando. 
