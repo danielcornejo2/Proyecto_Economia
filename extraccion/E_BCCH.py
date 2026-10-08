@@ -9,6 +9,7 @@ Uso (desde la carpeta raíz del proyecto):
 
 Todas las series se guardan en frecuencia MENSUAL: las series diarias o quincenales se
 convierten a promedio mensual, para que todas queden comparables entre sí.
+Los CSV quedan en data/raw/bcch/ (los de la FRED van aparte, en data/raw/fred/).
 
 Las credenciales se leen desde el archivo .env (ver .env.example), que NO se sube a GitHub.
 """
@@ -29,7 +30,8 @@ from dotenv import load_dotenv
 # ---------------------------------------------------------------------------
 URL_API = "https://si3.bcentral.cl/SieteRestWS/SieteRestWS.ashx"
 FECHA_INICIO = "2000-01-01"          # al menos 10 años de historia, según la pauta
-CARPETA_SALIDA = Path("data/raw")
+RAIZ = Path(__file__).resolve().parent.parent      # carpeta raíz del proyecto
+CARPETA_SALIDA = RAIZ / "data" / "raw" / "bcch"    # cada fuente tiene su propia carpeta
 
 # Series a descargar: {nombre_corto: código BDE}
 # Las series con código None están pendientes: el script las omite (sin marcar error)
@@ -68,7 +70,7 @@ SERIES = {
 
 def cargar_credenciales():
     """Lee usuario y clave desde .env y avisa si faltan."""
-    load_dotenv()
+    load_dotenv(RAIZ / ".env")
     usuario = os.getenv("BCCH_USER")
     clave = os.getenv("BCCH_PASS")
     if not usuario or not clave:
