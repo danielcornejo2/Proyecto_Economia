@@ -153,6 +153,19 @@ def a_mensual(df):
     )
     return mensual[["fecha", "valor"]]
 
+def leer_fecha_corte(texto):
+    """
+    Convierte la fecha de corte escrita como 'AAAA-MM-DD' en una fecha de pandas.
+    Si no se indicó fecha, devuelve None (se descarga hasta el último dato).
+    Si el formato es incorrecto, detiene el script con un mensaje claro.
+    """
+    if texto is None:
+        return None
+    try:
+        return pd.to_datetime(texto, format="%Y-%m-%d")
+    except ValueError:
+        sys.exit(f"ERROR: la fecha de corte '{texto}' no tiene el formato AAAA-MM-DD "
+                 "(ejemplo: 2026-09-30).")
 
 def buscar_series(texto, usuario, clave, frecuencia="MONTHLY"):
     """Muestra las series del catálogo cuyo título contiene el texto buscado."""
@@ -173,7 +186,12 @@ def main():
         choices=["DAILY", "MONTHLY", "QUARTERLY", "ANNUAL"],
         help="frecuencia del catálogo en que se busca (por defecto MONTHLY)",
     )
+    parser.add_argument(
+        "--hasta",
+        help="fecha de corte AAAA-MM-DD: se descartan los datos posteriores a esa fecha",
+    )
     args = parser.parse_args()
+    hasta = leer_fecha_corte(args.hasta)
 
     usuario, clave = cargar_credenciales()
 
@@ -182,6 +200,10 @@ def main():
         return
 
     CARPETA_SALIDA.mkdir(parents=True, exist_ok=True)
+    if hasta is not None:
+        print(f"Fecha de corte: {hasta:%Y-%m-%d} (se descartan los datos posteriores).")
+    else:
+        print("Sin fecha de corte: se descarga hasta el último dato disponible.")
     errores = []
     pendientes = []
     for nombre, codigo in SERIES.items():
@@ -192,7 +214,12 @@ def main():
 
         print(f"Descargando {nombre} ({codigo})...")
         try:
-            df = a_mensual(descargar_serie(codigo, usuario, clave))
+            df = descargar_serie(codigo, usuario, clave)
+            if hasta is not None:
+                df = df[df["fecha"] <= hasta]   # se descarta lo posterior a la fecha de corte
+            df = a_mensual(df)
+            if df.empty:
+                raise ValueError("no hay datos hasta la fecha de corte")
             df["serie"] = nombre
             df["codigo"] = codigo
             df.to_csv(CARPETA_SALIDA / f"{nombre}.csv", index=False)
