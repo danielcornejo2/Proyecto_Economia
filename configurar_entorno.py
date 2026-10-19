@@ -1,19 +1,3 @@
-"""
-Configura el proyecto en un solo paso (Mac, Linux y Windows):
-
-    1. Crea el entorno virtual .venv (si no existe).
-    2. Instala las dependencias de requirements.txt dentro de ese entorno.
-    3. Crea el archivo .env a partir de .env.example (si no existe). Si ya existe, le agrega
-       las variables nuevas de .env.example que le falten (por ejemplo FRED_API_KEY),
-       sin tocar las credenciales que ya estaban escritas.
-
-Uso, desde la carpeta raíz del proyecto:
-    Mac / Linux:  python3 configurar_entorno.py
-    Windows:      python configurar_entorno.py
-
-Solo usa la librería estándar de Python, así que funciona antes de instalar nada.
-"""
-
 import shutil
 import subprocess
 import sys
