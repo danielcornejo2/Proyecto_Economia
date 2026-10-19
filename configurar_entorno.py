@@ -3,7 +3,9 @@ Configura el proyecto en un solo paso (Mac, Linux y Windows):
 
     1. Crea el entorno virtual .venv (si no existe).
     2. Instala las dependencias de requirements.txt dentro de ese entorno.
-    3. Crea el archivo .env a partir de .env.example (si no existe).
+    3. Crea el archivo .env a partir de .env.example (si no existe). Si ya existe, le agrega
+       las variables nuevas de .env.example que le falten (por ejemplo FRED_API_KEY),
+       sin tocar las credenciales que ya estaban escritas.
 
 Uso, desde la carpeta raíz del proyecto:
     Mac / Linux:  python3 configurar_entorno.py
@@ -49,16 +51,49 @@ def instalar_dependencias():
     subprocess.run([py, "-m", "pip", "install", "-r", str(REQUIREMENTS), "--quiet"], check=True)
 
 
+def leer_variables(ruta):
+    """Devuelve {VARIABLE: valor} de un archivo .env, ignorando comentarios y líneas vacías."""
+    variables = {}
+    for linea in ruta.read_text(encoding="utf-8").splitlines():
+        linea = linea.strip()
+        if linea and not linea.startswith("#") and "=" in linea:
+            nombre, valor = linea.split("=", 1)
+            variables[nombre.strip()] = valor.strip().strip('"').strip("'")
+    return variables
+
+
 def preparar_env():
-    if ENV.exists():
-        print("[3/3] El archivo .env ya existe, no se modifica.")
-        return False
     if not ENV_EJEMPLO.exists():
         print("[3/3] AVISO: no se encontró .env.example en la raíz del proyecto.")
-        return False
-    shutil.copy(ENV_EJEMPLO, ENV)
-    print("[3/3] Se creó .env a partir de .env.example.")
-    return True
+        return
+    if not ENV.exists():
+        shutil.copy(ENV_EJEMPLO, ENV)
+        print("[3/3] Se creó .env a partir de .env.example.")
+        return
+
+    # El .env ya existe: solo se agregan al final las variables que le falten
+    ejemplo = leer_variables(ENV_EJEMPLO)
+    faltantes = [nombre for nombre in ejemplo if nombre not in leer_variables(ENV)]
+    if not faltantes:
+        print("[3/3] El archivo .env ya existe y está completo, no se modifica.")
+        return
+    contenido = ENV.read_text(encoding="utf-8")
+    separador = "" if contenido.endswith("\n") or not contenido else "\n"
+    nuevas = "".join(f"{nombre}={ejemplo[nombre]}\n" for nombre in faltantes)
+    ENV.write_text(
+        contenido + separador + "\n# Agregado por configurar_entorno.py: completa estos valores\n" + nuevas,
+        encoding="utf-8",
+    )
+    print(f"[3/3] Se agregaron a .env las variables nuevas: {', '.join(faltantes)}")
+
+
+def credenciales_por_completar():
+    """Variables del .env que siguen con el valor de ejemplo (sin mostrar los valores reales)."""
+    if not ENV.exists() or not ENV_EJEMPLO.exists():
+        return []
+    ejemplo = leer_variables(ENV_EJEMPLO)
+    actuales = leer_variables(ENV)
+    return [nombre for nombre, valor in ejemplo.items() if actuales.get(nombre, valor) in ("", valor)]
 
 
 def main():
@@ -67,14 +102,17 @@ def main():
 
     crear_entorno()
     instalar_dependencias()
-    env_nuevo = preparar_env()
+    preparar_env()
 
     activar = ".venv\\Scripts\\activate" if ES_WINDOWS else "source .venv/bin/activate"
     print("\nListo. Próximos pasos:")
-    if env_nuevo:
-        print("  - Abre el archivo .env y escribe tu usuario y clave de la BDE del Banco Central.")
+    pendientes = credenciales_por_completar()
+    if pendientes:
+        print(f"  - Abre el archivo .env y completa: {', '.join(pendientes)}")
     print("  - En VS Code: Select Interpreter → .venv (la terminal se activará sola)")
     print(f"  - Fuera de VS Code:       {activar}")
+    print("  - Descarga los datos:     python extraccion/E_BCCH.py")
+    print("                            python extraccion/E_FRED.py")
 
 
 if __name__ == "__main__":

@@ -59,8 +59,10 @@ Más allá de la regla como ecuación, el análisis busca entender los canales p
  
 ```
 Proyecto_Economia/
-├── extraccion/     # scripts que descargan las series desde las APIs (BCCh y FRED)
-├── base_datos/     # datos descargados y datos ya procesados
+├── extraccion/     # scripts que descargan las series desde las APIs
+│   ├── E_BCCH.py   #   Banco Central de Chile → data/raw/bcch/
+│   └── E_FRED.py   #   FRED (Reserva Federal de St. Louis) → data/raw/fred/
+├── data/raw/       # CSV descargados, una subcarpeta por fuente (se generan al ejecutar; no se suben)
 ├── sql/            # esquema y consultas de la base de datos
 ├── notebooks/      # análisis exploratorio, estimación de la regla de Taylor y proyección
 ├── dashboard/       # visualización del monitor de coyuntura (Streamlit)
@@ -94,29 +96,30 @@ La selección cubre la variable objetivo (TPM), sus determinantes según la regl
  
 Se necesita Python 3.10 o superior, una cuenta gratuita en la BDE del Banco Central (https://si3.bcentral.cl/Siete/) y una API key gratuita de FRED (https://fred.stlouisfed.org/docs/api/api_key.html).
  
-1. Clonar el repositorio e instalar las dependencias:
+1. Clonar el repositorio y configurar el entorno (crea `.venv`, instala las dependencias y crea `.env`):
 ```bash
 git clone https://github.com/danielcornejo2/Proyecto_Economia.git
 cd Proyecto_Economia
-pip install -r requirements.txt
+python3 configurar_entorno.py      # en Windows: python configurar_entorno.py
 ```
- 
-2. Crear un archivo `.env` en la raíz con las credenciales:
+
+2. Completar el archivo `.env` (en la raíz) con tus propias credenciales:
 ```
 BCCH_USER=correo@ejemplo.cl
 BCCH_PASS=contraseña
-FRED_API_KEY=api_key
+FRED_API_KEY=api_key_de_32_caracteres
 ```
- 
-Este archivo no se sube al repositorio; está incluido en el `.gitignore`.
- 
-3. Descargar las series y armar la base de datos:
+
+Este archivo es personal, no se sube al repositorio y está incluido en el `.gitignore`. Si ya tenías un `.env` de antes, vuelve a ejecutar `configurar_entorno.py`: agrega las variables nuevas (por ejemplo `FRED_API_KEY`) sin borrar tus credenciales.
+
+3. Descargar las series (cada fuente se guarda en su propia carpeta):
 ```bash
-python extraccion/descarga_bcch.py
-python extraccion/descarga_fred.py
-python extraccion/construir_base.py
+python extraccion/E_BCCH.py        # Banco Central → data/raw/bcch/
+python extraccion/E_FRED.py        # FRED → data/raw/fred/
 ```
- 
+
+Para buscar el código de otra serie: `python extraccion/E_BCCH.py --buscar "IPC"` o `python extraccion/E_FRED.py --buscar "copper"`.
+
 4. Correr los notebooks de `notebooks/` en orden (exploración → construcción de la brecha de actividad con el filtro HP → estimación de la regla de Taylor → proyección).
 5. Levantar el dashboard del monitor de coyuntura:
 ```bash
