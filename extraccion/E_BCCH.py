@@ -1,18 +1,3 @@
-"""
-Extracción de series desde la Base de Datos Estadísticos (BDE) del Banco Central de Chile
-usando el servicio web SieteRestWS.
-
-Uso (desde la carpeta raíz del proyecto):
-    python extraccion/E_BCCH.py                                    # descarga todas las series de SERIES
-    python extraccion/E_BCCH.py --buscar "IPC"                     # busca códigos de series mensuales
-    python extraccion/E_BCCH.py --buscar "operadores" --frecuencia DAILY   # busca en otra frecuencia
-
-Todas las series se guardan en frecuencia MENSUAL: las series diarias o quincenales se
-convierten a promedio mensual, para que todas queden comparables entre sí.
-Los CSV quedan en data/raw/bcch/ (los de la FRED van aparte, en data/raw/fred/).
-
-Las credenciales se leen desde el archivo .env (ver .env.example), que NO se sube a GitHub.
-"""
 
 import argparse
 import os
@@ -25,46 +10,61 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-# ---------------------------------------------------------------------------
+
 # Configuración
-# ---------------------------------------------------------------------------
+
 URL_API = "https://si3.bcentral.cl/SieteRestWS/SieteRestWS.ashx"
 FECHA_INICIO = "2000-01-01"          # al menos 10 años de historia, según la pauta
 RAIZ = Path(__file__).resolve().parent.parent      # carpeta raíz del proyecto
 CARPETA_SALIDA = RAIZ / "data" / "raw" / "bcch"    # cada fuente tiene su propia carpeta
 
-# Series a descargar: {nombre_corto: código BDE}
-# Las series con código None están pendientes: el script las omite (sin marcar error)
-# hasta que se complete su código. Para encontrarlo, usar el texto sugerido con --buscar.
+
 SERIES = {
     # 1. Tasa de política monetaria, promedio mensual
+    #    Variable objetivo del proyecto.
     "tpm": "F022.TPM.TIN.D001.NO.Z.M",
     # 2. IPC general, variación mensual (%)
+    #    Por qué: si la inflación se aleja de la meta de 3 %, el BCCh ajusta la TPM
+    #    en la misma dirección (signo +). Se publica con rezago: usar rezagada.
     "ipc": "F074.IPC.VAR.Z.Z.C.M",
-    # 3. IPC SAE (sin alimentos ni energía), variación mensual (%), base 2023
-    #    Verificar que cubra desde 2000; si parte en 2023, buscar la serie empalmada: --buscar "SAE"
-    "ipc_sae": "F074.IPCSAE.VAR.Z.2023.C.M",
+    # 3. IPC SAE (sin alimentos ni energía), variación mensual (%), serie empalmada
+    #    por el INE (base 2023 = 100). Disponible desde 2010-01.
+    #    Por qué: inflación subyacente; muestra si las presiones de precios son
+    #    persistentes (signo +).
+    "ipc_sae": "F074.IPCSAE.VAR.Z.EP23.Z.M",
     # 4. Imacec, índice original, referencia 2018
+    #    Por qué: con el filtro HP se obtiene la brecha de actividad de la regla de
+    #    Taylor; actividad sobre su potencial presiona la inflación (signo +).
     "imacec": "F032.IMC.IND.Z.Z.EP18.Z.Z.0.M",
     # 5. Tipo de cambio dólar observado, promedio mensual
+    #    Por qué: canal cambiario; una depreciación del peso encarece los bienes
+    #    importados y sube la inflación (signo +).
     "dolar_observado": "F073.TCO.PRE.HIST.M",
     # 6. Expectativa de inflación a 12 meses, Encuesta de Expectativas Económicas (EEE), mediana
+    #    Por qué: la regla de Taylor responde a la inflación esperada; expectativas
+    #    sobre 3 % anticipan alzas de la TPM (signo +).
     "expectativa_ipc_eee": "F089.IPC.V12.14.M",
-    # 7. Expectativa de inflación, Encuesta de Operadores Financieros (EOF)
-    #    PENDIENTE: --buscar "operadores" --frecuencia DAILY  (la EOF es quincenal)
-    "expectativa_ipc_eof": None,
-    # 8a. Tasa BCP 10 años (bonos en pesos), mercado secundario. Serie diaria → promedio mensual
+    # 7a. Tasa de interés de mercado secundario, bonos en pesos a 10 años (BCP/BTP).
+    #     Serie diaria → promedio mensual. Reemplaza a la tasa de licitación BCP,
+    #     que se dejó de publicar en 2013.
+    #     Por qué: refleja las expectativas del mercado sobre tasas e inflación
+    #     futuras (canal de tasas de mercado).
     "tasa_bcp_10": "F022.BCLP.TIS.AN10.NO.Z.D",
-    # 8b. Tasa BCU 10 años (bonos en UF), mercado secundario. Serie diaria → promedio mensual
+    # 7b. Tasa BCU 10 años (bonos en UF), mercado secundario. Serie diaria → promedio mensual
+    #     Por qué: tasa real de largo plazo; muestra cómo se transmite la TPM a las
+    #     tasas de crédito.
     "tasa_bcu_10": "F022.BUF.TIS.AN10.UF.Z.D",
-    # 8c. Tasa de los PDBC (pagarés descontables del Banco Central)
-    #     PENDIENTE: --buscar "PDBC"  o  --buscar "descontables"
-    "tasa_pdbc": None,
-    # 9. Tasa de desocupación nacional (%), INE
+    # 7c. Tasa de depósitos en bolsa a 90 días, en pesos, mercado secundario.
+    #     Serie diaria → promedio mensual. Disponible desde 2007-02.
+    #     Reemplaza a la tasa de los PDBC: sus tasas a 30 y 90 días se dejaron de
+    #     licitar y la de 14 días solo existe desde 2024.
+    #     Por qué: tasa de corto plazo del mercado monetario; incorpora lo que se
+    #     espera de la TPM en los próximos meses (signo +, adelanta).
+    "tasa_depositos_90d": "F022.TDB.TIS.D090.NO.Z.D",
+    # 8. Tasa de desocupación nacional (%), INE
+    #    Por qué: mide la holgura del mercado laboral; más desempleo implica menos
+    #    presión salarial e inflacionaria (signo −).
     "desempleo": "F049.DES.TAS.INE9.10.M",
-    # 10. Índice nominal de remuneraciones, INE
-    #     PENDIENTE: --buscar "remuneraciones"
-    "remuneraciones": None,
 }
 
 
