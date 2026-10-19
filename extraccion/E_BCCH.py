@@ -1,18 +1,3 @@
-"""
-Extracción de series desde la Base de Datos Estadísticos (BDE) del Banco Central de Chile
-usando el servicio web SieteRestWS.
-
-Uso (desde la carpeta raíz del proyecto):
-    python extraccion/E_BCCH.py                                    # descarga todas las series de SERIES
-    python extraccion/E_BCCH.py --buscar "IPC"                     # busca códigos de series mensuales
-    python extraccion/E_BCCH.py --buscar "operadores" --frecuencia DAILY   # busca en otra frecuencia
-
-Todas las series se guardan en frecuencia MENSUAL: las series diarias o quincenales se
-convierten a promedio mensual, para que todas queden comparables entre sí.
-Los CSV quedan en data/raw/bcch/ (los de la FRED van aparte, en data/raw/fred/).
-
-Las credenciales se leen desde el archivo .env (ver .env.example), que NO se sube a GitHub.
-"""
 
 import argparse
 import os

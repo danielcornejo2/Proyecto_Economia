@@ -1,19 +1,3 @@
-"""
-Extracción de series desde FRED (Federal Reserve Economic Data, Reserva Federal de St. Louis)
-usando su API oficial.
-
-Uso (desde la carpeta raíz del proyecto):
-    python extraccion/E_FRED.py                       # descarga todas las series de SERIES
-    python extraccion/E_FRED.py --buscar "copper"     # busca códigos de series (en inglés)
-
-Todas las series se guardan en frecuencia MENSUAL: las series diarias se convierten a
-promedio mensual, igual que en E_BCCH.py, para que todas queden comparables entre sí.
-Los CSV quedan en data/raw/fred/ (los del Banco Central van aparte, en data/raw/bcch/).
-
-La API key se lee desde el archivo .env (variable FRED_API_KEY, ver .env.example),
-que NO se sube a GitHub. Se obtiene gratis en https://fred.stlouisfed.org/docs/api/api_key.html
-"""
-
 import argparse
 import os
 import re
