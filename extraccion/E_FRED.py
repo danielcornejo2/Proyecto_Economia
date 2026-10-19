@@ -147,6 +147,15 @@ def a_mensual(df):
     )
     return mensual[["fecha", "valor"]]
 
+def leer_fecha_corte(texto):
+    if texto is None:
+        return None
+    try:
+        return pd.to_datetime(texto, format="%Y-%m-%d")
+    except ValueError:
+        sys.exit(f"ERROR: la fecha de corte '{texto}' no tiene el formato AAAA-MM-DD "
+                 "(ejemplo: 2026-09-30).")
+
 
 def buscar_series(texto, api_key):
     """Muestra las series de FRED que coinciden con el texto buscado (en inglés)."""
@@ -169,8 +178,12 @@ def buscar_series(texto, api_key):
 def main():
     parser = argparse.ArgumentParser(description="Extrae series de FRED (Reserva Federal de St. Louis).")
     parser.add_argument("--buscar", help="texto a buscar en el catálogo de FRED (en inglés)")
+    parser.add_argument(
+        "--hasta",
+        help="fecha de corte AAAA-MM-DD: se descartan los datos posteriores a esa fecha",
+    )
     args = parser.parse_args()
-
+    hasta = leer_fecha_corte(args.hasta)
     api_key = cargar_api_key()
 
     if args.buscar:
@@ -178,6 +191,10 @@ def main():
         return
 
     CARPETA_SALIDA.mkdir(parents=True, exist_ok=True)
+    if hasta is not None:
+        print(f"Fecha de corte: {hasta:%Y-%m-%d} (se descartan los datos posteriores).")
+    else:
+        print("Sin fecha de corte: se descarga hasta el último dato disponible.")
     errores = []
     pendientes = []
     for nombre, codigo in SERIES.items():
@@ -188,7 +205,12 @@ def main():
 
         print(f"Descargando {nombre} ({codigo})...")
         try:
-            df = a_mensual(descargar_serie(codigo, api_key))
+            df = descargar_serie(codigo, api_key)
+            if hasta is not None:
+                df = df[df["fecha"] <= hasta]   # se descarta lo posterior a la fecha de corte
+            df = a_mensual(df)
+            if df.empty:
+                raise ValueError("la API no devolvió observaciones")
             if df.empty:
                 raise ValueError("la API no devolvió observaciones")
             df["serie"] = nombre

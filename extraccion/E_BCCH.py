@@ -216,7 +216,7 @@ def main():
         try:
             df = descargar_serie(codigo, usuario, clave)
             if hasta is not None:
-                df = df[df["fecha"] <= hasta]   # se descarta lo posterior a la fecha de corte
+                df = df[df["fecha"] <= hasta]   
             df = a_mensual(df)
             if df.empty:
                 raise ValueError("no hay datos hasta la fecha de corte")
