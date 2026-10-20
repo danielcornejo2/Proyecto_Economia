@@ -23,7 +23,7 @@
 9. [Referencias](#referencias)
 
 ---
- 
+
 ## Contexto y motivación
  
 La Tasa de Política Monetaria (TPM) es uno de los principales instrumentos que utiliza el Banco Central de Chile (BCCh) para conducir la política monetaria y cumplir su objetivo de estabilidad de precios. A través de sus modificaciones, el Banco Central influye sobre las tasas de interés del sistema financiero y, en consecuencia, sobre las decisiones de consumo, ahorro e inversión de los agentes económicos, afectando la actividad económica y la inflación (Banco Central de Chile, s.f.).
@@ -44,6 +44,7 @@ Para responderla, el proyecto:
 2. Estima una regla de Taylor para Chile y contrasta la TPM que predice la regla con la TPM efectivamente observada.
 3. Identifica los períodos en que la política monetaria se apartó de lo que la regla sugería y discute posibles razones económicas de esas desviaciones.
 4. Proyecta la trayectoria esperada de la TPM a 6-24 meses.
+
 ## Metodología
  
 ### Regla de Taylor
@@ -89,11 +90,10 @@ La selección cubre la variable objetivo (TPM), sus determinantes según la regl
 | 7 | `dolar_observado` | Dólar observado, promedio mensual | `F073.TCO.PRE.HIST.M` | BCCh | Mensual | Tipo de cambio |
 | 8 | `tasa_bcp_10` | Tasa de mercado secundario, bonos en pesos a 10 años | `F022.BCLP.TIS.AN10.NO.Z.D` | BCCh | Diaria | Tasas de mercado |
 | 9 | `tasa_bcu_10` | Tasa de mercado secundario, bonos en UF a 10 años | `F022.BUF.TIS.AN10.UF.Z.D` | BCCh | Diaria | Tasas de mercado |
-| 10 | `tasa_depositos_90d` | Tasa de depósitos en bolsa a 90 días, pesos | `F022.TDB.TIS.D090.NO.Z.D` | BCCh | Diaria | Tasas de mercado |
-| 11 | `precio_cobre` | Precio internacional del cobre (FMI) | `PCOPPUSDM` | FRED | Mensual | Externo |
-| 12 | `fed_funds` | Tasa de fondos federales de EE.UU. | `FEDFUNDS` | FRED | Mensual | Externo |
-| 13 | `ipc_eeuu` | IPC de EE.UU. (CPI-U), desestacionalizado | `CPIAUCSL` | FRED | Mensual | Externo |
-| 14 | `produccion_industrial_eeuu` | Producción industrial de EE.UU. | `INDPRO` | FRED | Mensual | Externo |
+| 10 | `precio_cobre` | Precio internacional del cobre (FMI) | `PCOPPUSDM` | FRED | Mensual | Externo |
+| 11 | `fed_funds` | Tasa de fondos federales de EE.UU. | `FEDFUNDS` | FRED | Mensual | Externo |
+| 12 | `ipc_eeuu` | IPC de EE.UU. (CPI-U), desestacionalizado | `CPIAUCSL` | FRED | Mensual | Externo |
+| 13 | `produccion_industrial_eeuu` | Producción industrial de EE.UU. | `INDPRO` | FRED | Mensual | Externo |
  
 ### Tratamiento de errores, datos faltantes y frecuencias
  
