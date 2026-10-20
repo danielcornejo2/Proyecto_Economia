@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 # ---------------------------------------------------------------------------
 # Configuración
 # ---------------------------------------------------------------------------
+
 URL_API = "https://si3.bcentral.cl/SieteRestWS/SieteRestWS.ashx"
 FECHA_INICIO = "2000-01-01"          # al menos 10 años de historia, según la pauta
 RAIZ = Path(__file__).resolve().parent.parent      # carpeta raíz del proyecto
@@ -28,7 +29,7 @@ SERIES = {
     "ipc": "F074.IPC.VAR.Z.Z.C.M",
     # 3. IPC SAE (sin alimentos ni energía), variación mensual (%), base 2023
     #    Verificar que cubra desde 2000; si parte en 2023, buscar la serie empalmada: --buscar "SAE"
-    "ipc_sae": "F074.IPCSAE.VAR.Z.2023.C.M",
+    "ipc_sae": "F074.IPCSAE.VAR.Z.EP23.Z.M",
     # 4. Imacec, índice original, referencia 2018
     "imacec": "F032.IMC.IND.Z.Z.EP18.Z.Z.0.M",
     # 5. Tipo de cambio dólar observado, promedio mensual
