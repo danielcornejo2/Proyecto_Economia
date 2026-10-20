@@ -95,6 +95,350 @@ La selección cubre la variable objetivo (TPM), sus determinantes según la regl
 | 12 | `fed_funds` | Tasa de fondos federales de EE.UU. | `FEDFUNDS` | FRED | Mensual | Externo |
 | 13 | `ipc_eeuu` | IPC de EE.UU. (CPI-U), desestacionalizado | `CPIAUCSL` | FRED | Mensual | Externo |
 | 14 | `produccion_industrial_eeuu` | Producción industrial de EE.UU. | `INDPRO` | FRED | Mensual | Externo |
+
+
+### Funcionamiento del script de extracción del Banco Central (`E_BCCH.py`)
+
+El archivo `extraccion/E_BCCH.py` permite descargar automáticamente 10 indicadores económicos desde la Base de Datos Estadísticos (BDE) del Banco Central de Chile, utilizando su API SieteRestWS.
+
+**Objetivo del script**
+
+Obtener información económica real y actualizable para analizar la trayectoria de la Tasa de Política Monetaria (TPM), sus determinantes macroeconómicos y los principales canales de transmisión de la política monetaria.
+
+**Configuración inicial**
+
+El script define los siguientes elementos:
+
+- `URL_API`: dirección del servicio web del Banco Central.
+- `FECHA_INICIO`: fecha inicial de consulta, establecida en `2000-01-01`.
+- `SERIES`: diccionario que contiene los nombres y códigos de los 10 indicadores seleccionados.
+- `CARPETA_SALIDA`: directorio `data/raw/bcch/`, donde se almacenan los CSV.
+
+**Funciones principales**
+
+| Función | Descripción |
+|---|---|
+| `cargar_credenciales()` | Obtiene `BCCH_USER` y `BCCH_PASS` desde `.env` y comprueba que estén configuradas. |
+| `ocultar_credenciales()` | Oculta el usuario y la contraseña en los mensajes de error. |
+| `llamar_api()` | Consulta la API mediante `requests`, comprueba la respuesta y realiza hasta tres intentos ante errores. |
+| `descargar_serie()` | Descarga las observaciones de una serie y las convierte en un DataFrame de pandas con fecha y valor. |
+| `a_mensual()` | Convierte las observaciones a frecuencia mensual mediante el promedio de los valores disponibles en cada mes. |
+| `leer_fecha_corte()` | Interpreta y valida la fecha proporcionada mediante `--hasta`. |
+| `buscar_series()` | Busca indicadores en el catálogo del Banco Central mediante una palabra clave. |
+| `main()` | Coordina la descarga, el procesamiento, la generación de CSV y el reporte de errores. |
+
+**Procesamiento de los datos**
+
+1. Se cargan las credenciales desde el archivo `.env`.
+2. Se consulta la API para cada una de las 10 series económicas.
+3. Se convierten las fechas al formato utilizado por pandas y los valores a formato numérico.
+4. Las observaciones que la API identifica con un estado distinto de `OK` se consideran faltantes.
+5. Si se indicó una fecha de corte, se eliminan las observaciones posteriores.
+6. Se calcula el promedio mensual mediante `resample("MS").mean()`. Las fechas mensuales corresponden al primer día de cada mes.
+7. Se agregan las columnas `serie` y `codigo`.
+8. Se genera un archivo CSV independiente para cada indicador en `data/raw/bcch/`.
+
+Cada CSV contiene las columnas `fecha`, `valor`, `serie` y `codigo`.
+
+**Tratamiento de errores**
+
+El script incorpora mecanismos para mejorar la seguridad y confiabilidad de la extracción:
+
+- Comprueba que existan las credenciales necesarias.
+- Realiza hasta tres intentos de consulta ante errores de la API o de conexión.
+- Oculta las credenciales en los mensajes de error.
+- Identifica los valores faltantes sin reemplazarlos artificialmente.
+- Informa el número de meses descargados y la cantidad de datos faltantes por serie.
+- Identifica las series que presentaron errores y finaliza con un código de error si alguna descarga falló.
+
+**Ejecución**
+
+Para descargar los indicadores hasta la fecha de corte del Hito 2:
+
+```bash
+python extraccion/E_BCCH.py --hasta 2026-09-30
+```
+
+Para buscar series en el catálogo del Banco Central:
+
+```bash
+python extraccion/E_BCCH.py --buscar "IPC"
+```
+
+El resultado de la extracción se utiliza posteriormente para construir la base de datos SQLite mediante `bd/crear_base.py`.
+
+
+### Funcionamiento del script de extracción de FRED (`E_FRED.py`)
+
+El archivo `extraccion/E_FRED.py` permite descargar automáticamente cuatro indicadores económicos internacionales desde Federal Reserve Economic Data (FRED), utilizando la API oficial de la Reserva Federal de St. Louis.
+
+**Objetivo del script**
+
+Incorporar variables internacionales relevantes para el análisis de la Tasa de Política Monetaria (TPM) de Chile, considerando factores externos como las condiciones monetarias de Estados Unidos, la actividad económica internacional y el precio del cobre.
+
+**Indicadores seleccionados**
+
+| Variable | Código FRED | Relevancia económica |
+|---|---|---|
+| Precio del cobre | `PCOPPUSDM` | Permite incorporar un indicador externo relevante para la economía chilena por su importancia en las exportaciones. |
+| Tasa de fondos federales | `FEDFUNDS` | Representa las condiciones de política monetaria de Estados Unidos. |
+| IPC de Estados Unidos | `CPIAUCSL` | Permite analizar la evolución del nivel de precios estadounidense. |
+| Producción industrial de Estados Unidos | `INDPRO` | Aproxima la evolución de la actividad industrial estadounidense. |
+
+**Configuración inicial**
+
+El script define los siguientes elementos:
+
+- `URL_API`: dirección de la API oficial de FRED.
+- `FECHA_INICIO`: fecha inicial de consulta, establecida en `2000-01-01`.
+- `SERIES`: diccionario con los nombres y códigos de los cuatro indicadores.
+- `CARPETA_SALIDA`: directorio `data/raw/fred/`, donde se almacenan los CSV.
+
+**Funciones principales**
+
+| Función | Descripción |
+|---|---|
+| `cargar_api_key()` | Lee `FRED_API_KEY` desde `.env` y valida su formato. |
+| `ocultar_credenciales()` | Evita mostrar la clave de acceso en los mensajes de error. |
+| `mensaje_de_error()` | Obtiene la descripción del error entregada por la API. |
+| `llamar_api()` | Realiza solicitudes a FRED, comprueba las respuestas y aplica reintentos cuando corresponde. |
+| `descargar_serie()` | Descarga las observaciones de un indicador y las convierte en un DataFrame de pandas. |
+| `a_mensual()` | Transforma las observaciones a frecuencia mensual mediante el promedio de los valores disponibles. |
+| `leer_fecha_corte()` | Valida la fecha indicada mediante el argumento `--hasta`. |
+| `buscar_series()` | Permite buscar indicadores en el catálogo de FRED. |
+| `main()` | Coordina la extracción, transformación, almacenamiento y reporte de errores. |
+
+**Procesamiento de los datos**
+
+1. Se carga la clave `FRED_API_KEY` desde el archivo `.env`.
+2. Se consulta la API de FRED para descargar cada indicador.
+3. Las observaciones recibidas se organizan en un DataFrame de pandas.
+4. Se convierten las fechas y los valores a formatos adecuados para su procesamiento.
+5. Los valores faltantes, identificados por FRED mediante un punto (`.`), se convierten en valores nulos.
+6. Se descartan las observaciones posteriores a la fecha de corte, cuando esta se especifica.
+7. Se utiliza `resample("MS").mean()` para obtener una observación mensual por serie.
+8. Se incorporan las columnas `serie` y `codigo`.
+9. Se guarda un archivo CSV por indicador en `data/raw/fred/`.
+
+Cada CSV contiene las columnas `fecha`, `valor`, `serie` y `codigo`.
+
+**Tratamiento de errores**
+
+El programa incorpora los siguientes controles:
+
+- Verifica que exista una clave de acceso a FRED y que tenga el formato esperado.
+- Oculta la clave de acceso en los mensajes de error.
+- Identifica errores de conexión y respuestas incorrectas de la API.
+- Realiza hasta tres intentos ante errores que pueden ser temporales.
+- Aplica una espera mayor cuando FRED responde con el código HTTP 429, asociado a un exceso de solicitudes.
+- Distingue errores definitivos, como una clave inválida o una serie inexistente.
+- Conserva los valores faltantes sin reemplazarlos artificialmente.
+- Informa la cantidad de meses descargados y los datos faltantes de cada serie.
+- Identifica las series que fallaron y finaliza con un código de error si corresponde.
+
+**Ejecución**
+
+Para descargar los indicadores hasta la fecha de corte del Hito 2:
+
+```bash
+python extraccion/E_FRED.py --hasta 2026-09-30
+```
+
+Para buscar indicadores en el catálogo de FRED:
+
+```bash
+python extraccion/E_FRED.py --buscar "copper"
+```
+
+Los archivos descargados se utilizan posteriormente, junto con los indicadores del Banco Central, para construir la base de datos SQLite mediante `bd/crear_base.py`.
+
+
+### Funcionamiento del script de construcción de la base de datos (`crear_base.py`)
+
+El archivo `bd/crear_base.py` construye una base de datos relacional SQLite a partir de los archivos CSV generados por los scripts de extracción del Banco Central de Chile y FRED.
+
+**Objetivo del script**
+
+Centralizar y organizar los 14 indicadores económicos del proyecto en una base de datos estructurada, con información sobre sus fuentes, características, clasificación temática y observaciones mensuales.
+
+**Configuración inicial**
+
+El script utiliza los siguientes elementos:
+
+- `CARPETA_DATOS`: directorio `data/raw/`, que contiene los CSV de ambas fuentes.
+- `RUTA_BASE`: ubicación del archivo SQLite de salida, `data/base.db`.
+- `FUENTES`: identifica las carpetas `bcch/` y `fred/`.
+- `COLUMNAS_CSV`: establece las columnas obligatorias `fecha`, `valor`, `serie` y `codigo`.
+- `TEMAS`: define ocho categorías económicas.
+- `CATALOGO`: registra los metadatos de las 14 series seleccionadas.
+- `MetaSerie`: estructura que almacena la fuente, frecuencia original, tema, tipo, unidad y descripción de cada indicador.
+
+**Estructura de la base de datos**
+
+La base contiene tres tablas relacionadas:
+
+| Tabla | Contenido | Clave primaria |
+|---|---|---|
+| `temas` | Categorías económicas y sus descripciones. | `id_tema` |
+| `series` | Identificación, fuente, código y características de cada indicador. | `id_serie` |
+| `observaciones` | Valores mensuales de cada serie económica. | `(id_serie, fecha)` |
+
+Las relaciones entre las tablas se establecen mediante claves foráneas:
+
+- `series.id_tema` se relaciona con `temas.id_tema`.
+- `observaciones.id_serie` se relaciona con `series.id_serie`.
+
+La clave primaria compuesta de `observaciones` impide almacenar dos observaciones de una misma serie para el mismo mes.
+
+El programa también crea índices para facilitar consultas y una vista llamada `v_observaciones`, que reúne la información de las tres tablas.
+
+**Funciones principales**
+
+| Función | Descripción |
+|---|---|
+| `validar_catalogo()` | Comprueba que los temas asignados a las series estén definidos. |
+| `listar_csv()` | Localiza los CSV en las carpetas de las fuentes conocidas. |
+| `leer_csv()` | Lee los archivos y valida sus columnas, fechas, códigos y valores. |
+| `insertar_temas()` | Registra las categorías económicas en la tabla `temas`. |
+| `insertar_serie()` | Registra los metadatos de cada indicador en la tabla `series`. |
+| `insertar_observaciones()` | Inserta las observaciones mensuales en la tabla `observaciones`. |
+| `verificar_integridad()` | Ejecuta comprobaciones de integridad de SQLite y de claves foráneas. |
+| `construir_base()` | Coordina la creación de las tablas y la carga de los datos. |
+| `mostrar_resumen()` | Presenta las series cargadas, sus observaciones válidas y sus rangos de fechas. |
+| `main()` | Ejecuta el proceso y comunica los resultados o errores. |
+
+**Proceso de construcción**
+
+1. Se comprueba que el catálogo de indicadores esté correctamente definido.
+2. Se buscan los archivos CSV en `data/raw/bcch/` y `data/raw/fred/`.
+3. Se crea una base de datos temporal con las tablas, índices y vista correspondientes.
+4. Se insertan las ocho categorías económicas en la tabla `temas`.
+5. Se valida cada CSV antes de incorporarlo a la base.
+6. Se registran las características de cada indicador en `series`.
+7. Se insertan los valores mensuales en `observaciones`.
+8. Los valores faltantes de pandas (`NaN`) se almacenan como `NULL` en SQLite.
+9. Se verifica la integridad de la base y sus relaciones.
+10. Si no ocurren errores graves, la base temporal reemplaza al archivo de base de datos anterior.
+11. Se muestra un resumen de las series cargadas y los problemas detectados.
+
+**Validaciones y controles**
+
+El script verifica que:
+
+- Los archivos CSV contengan las cuatro columnas obligatorias.
+- Los archivos no estén vacíos.
+- El nombre de cada serie coincida con el nombre de su archivo.
+- Cada CSV corresponda a un único código de indicador.
+- Las fechas tengan el formato esperado y no estén duplicadas.
+- Los valores no faltantes sean numéricos.
+- Los indicadores pertenezcan a las fuentes y temas definidos.
+- No existan relaciones inválidas entre las tablas.
+- No se repita una combinación de serie y fecha.
+
+La base admite valores `NULL` cuando no existen observaciones disponibles, evitando reemplazar artificialmente los datos faltantes.
+
+**Seguridad de la construcción**
+
+El programa utiliza una base temporal y una transacción para proteger la consistencia de los datos. Si ocurre un error grave durante la construcción, elimina el archivo temporal y conserva la base anterior.
+
+Cuando encuentra archivos faltantes o inválidos, registra esos problemas y puede finalizar con un código de error, aunque haya logrado cargar las demás series. Por esta razón, se debe comprobar que el mensaje final indique que todas las series del catálogo quedaron cargadas.
+
+**Ejecución**
+
+Para construir la base de datos desde la carpeta raíz del proyecto:
+
+```bash
+python bd/crear_base.py
+```
+
+El archivo generado se almacena en:
+
+`data/base.db`
+
+El programa también permite indicar otras rutas mediante los argumentos `--datos` y `--salida`.
+
+**Resultado esperado**
+
+Una base de datos SQLite que contenga los ocho temas económicos, las 14 series seleccionadas y sus observaciones mensuales, lista para realizar consultas SQL y análisis posteriores.
+
+
+### Funcionamiento del script de carga automática (`carga.py`)
+
+El archivo `carga.py` coordina la extracción de indicadores económicos desde el Banco Central de Chile y FRED, su transformación a frecuencia mensual y la construcción de la base de datos SQLite.
+
+**Objetivo del script**
+
+Automatizar el proceso completo de obtención y almacenamiento de datos económicos, permitiendo reproducir la base del proyecto mediante una sola ejecución.
+
+**Configuración inicial**
+
+El script utiliza:
+
+- `FECHA_CORTE`: fecha de corte predeterminada, `2026-09-30`.
+- `E_BCCH`: módulo de extracción del Banco Central de Chile.
+- `E_FRED`: módulo de extracción de FRED.
+- `crear_base`: módulo encargado de construir la base de datos SQLite.
+- `pandas`: biblioteca utilizada para interpretar las fechas y procesar las observaciones.
+
+**Funciones principales**
+
+| Función | Descripción |
+|---|---|
+| `descargar_fuente()` | Descarga las series de una fuente, aplica la fecha de corte, convierte los datos a frecuencia mensual y guarda los CSV. |
+| `main()` | Coordina la extracción desde ambas fuentes, verifica errores y ejecuta la construcción de la base de datos. |
+
+**Etapas del proceso**
+
+1. Se establece la fecha de corte, que por defecto corresponde al 30 de septiembre de 2026.
+2. Se cargan las credenciales del Banco Central desde `.env`.
+3. Se descargan los 10 indicadores del Banco Central.
+4. Se carga la clave de acceso a FRED desde `.env`.
+5. Se descargan los cuatro indicadores internacionales.
+6. Se eliminan las observaciones posteriores a la fecha de corte.
+7. Se convierten las observaciones a frecuencia mensual mediante promedios.
+8. Se guarda un archivo CSV por indicador en la carpeta de su fuente.
+9. Si alguna descarga falla, se informa el error y no se ejecuta la construcción de la base.
+10. Si las descargas finalizan correctamente, se ejecuta `crear_base.construir_base()` para generar `data/base.db`.
+11. Se presenta un resumen de las series y observaciones almacenadas.
+12. Si no se detectan problemas, se muestra un mensaje de carga completa.
+
+**Tratamiento de errores**
+
+El script identifica fallas durante la descarga y muestra mensajes `[ERROR]` con el nombre del indicador afectado.
+
+Si una o más series no pueden descargarse, se detiene el proceso antes de construir la base de datos, evitando utilizar involuntariamente los CSV anteriores para completar una nueva carga.
+
+Los CSV que ya existían o que fueron generados antes del error pueden permanecer en `data/raw/`. Por ello, ante una falla, se recomienda revisar los mensajes y volver a ejecutar el proceso completo.
+
+El script también utiliza las validaciones de integridad implementadas en `crear_base.py`.
+
+**Ejecución**
+
+Desde la carpeta raíz del repositorio:
+
+```bash
+python carga.py
+```
+
+Este comando descarga las series y construye la base utilizando la fecha de corte predeterminada `2026-09-30`.
+
+También es posible especificar otra fecha:
+
+```bash
+python carga.py --hasta 2026-09-30
+```
+
+**Archivos generados**
+
+- `data/raw/bcch/`: archivos CSV del Banco Central.
+- `data/raw/fred/`: archivos CSV de FRED.
+- `data/base.db`: base de datos SQLite con los indicadores y sus observaciones mensuales.
+
+**Resultado esperado**
+
+Una base de datos SQLite con los 14 indicadores económicos del proyecto, organizados por tema y fuente, junto con sus observaciones mensuales hasta la fecha de corte establecida.
+
+
  
 ### Tratamiento de errores, datos faltantes y frecuencias
  
@@ -155,33 +499,99 @@ El archivo generado se guarda en `data/base.db` y contiene las tres tablas relac
 
 ### Consultas SQL
 
-El archivo `sql/consultas.sql` contiene tres consultas SQL que permiten explorar, organizar y analizar los indicadores económicos almacenados en la base de datos SQLite (`data/base.db`).
+El archivo `sql/consultas.sql` contiene tres consultas SQL que permiten explorar, organizar y analizar los 14 indicadores económicos almacenados en la base de datos SQLite (`data/base.db`). Estas consultas utilizan las tablas `temas`, `series` y `observaciones`, creadas mediante el archivo `bd/crear_base.py`.
 
-**1. Consulta JOIN: relación entre tablas**
+Su objetivo es comprobar las relaciones entre las tablas, resumir las observaciones mensuales y calcular transformaciones económicas utilizando funciones de ventana.
 
-Utiliza `JOIN` para relacionar las tablas `observaciones`, `series` y `temas` mediante sus llaves primarias y foráneas. Permite obtener cada observación junto con el nombre del indicador económico, su tema, tipo, unidad, frecuencia, fecha y valor.
+#### 1. Consulta JOIN: relación entre tablas
 
-**2. Consulta GROUP BY: agrupación mensual**
+La primera consulta utiliza `JOIN` para relacionar las tablas `observaciones`, `series` y `temas` mediante sus claves primarias y foráneas.
 
-Utiliza `GROUP BY`, `AVG()` y `COUNT()` para agrupar las observaciones por serie y mes, calcular el promedio de sus valores y contar las observaciones disponibles.
+Permite obtener cada observación económica junto con su clasificación temática y las características del indicador al que pertenece.
 
-Como los datos ya se almacenan en frecuencia mensual, esta consulta permite resumir y verificar la información mensual de cada indicador.
+**Comandos utilizados:**
 
-**3. Consulta con funciones de ventana: variación en 12 meses**
+- `SELECT`: selecciona las columnas que se mostrarán en el resultado.
+- `FROM`: indica la tabla principal de la consulta.
+- `JOIN`: relaciona las tablas mediante sus identificadores comunes.
+- `ON`: establece la condición que deben cumplir las tablas para relacionarse.
+- `ORDER BY`: ordena los resultados por tema, nombre de la serie y fecha.
 
-Utiliza funciones como `LAG()`, `PARTITION BY` y ventanas móviles para calcular variaciones de los indicadores económicos durante un período de 12 meses.
+**Resultado:** una tabla que contiene el tema económico, nombre del indicador, tipo de variable, unidad de medida, frecuencia original, fecha y valor.
 
-El cálculo depende del tipo de indicador:
+Esta consulta permite comprobar que cada observación esté correctamente asociada con su serie económica y su clasificación temática.
 
-- **Tasas de interés:** diferencia respecto de 12 meses atrás, expresada en puntos porcentuales.
-- **Índices y niveles:** variación porcentual respecto de 12 meses atrás.
-- **Variaciones mensuales:** variación acumulada mediante la composición de los últimos 12 valores porcentuales.
+#### 2. Consulta GROUP BY: agrupación mensual
 
-**Ejecución de las consultas**
+La segunda consulta utiliza `GROUP BY`, `AVG()` y `COUNT()` para agrupar las observaciones por indicador y mes, calcular el promedio de los valores disponibles y contar las observaciones válidas.
 
-Una vez creada la base de datos, se debe abrir `data/base.db` mediante una herramienta compatible con SQLite y ejecutar las instrucciones contenidas en `sql/consultas.sql`.
+**Comandos utilizados:**
 
-Estas consultas permiten comprobar las relaciones entre las tablas y obtener información para el análisis de coyuntura económica.
+- `GROUP BY`: agrupa las observaciones que pertenecen a una misma serie y mes.
+- `strftime('%Y-%m', o.fecha)`: obtiene el año y mes de cada fecha.
+- `AVG(o.valor)`: calcula el promedio de los valores no nulos dentro de cada grupo.
+- `COUNT(o.valor)`: cuenta las observaciones que tienen un valor válido.
+- `ORDER BY`: organiza los resultados por nombre de la serie y mes.
+
+**Importante:** los scripts de extracción `E_BCCH.py` y `E_FRED.py` ya convierten las observaciones a frecuencia mensual antes de almacenarlas en SQLite. Por lo tanto, esta consulta no transforma directamente datos diarios en mensuales, sino que resume y verifica información previamente mensualizada.
+
+Como normalmente existe una observación por serie y mes, `AVG()` devuelve el valor mensual almacenado y `COUNT()` permite identificar si ese valor está disponible.
+
+**Resultado:** una tabla con el nombre del indicador, su frecuencia original, el mes, el valor mensual y el número de observaciones válidas.
+
+#### 3. Consulta con funciones de ventana: variación en 12 meses
+
+La tercera consulta utiliza funciones de ventana para calcular transformaciones de los indicadores económicos durante un período de 12 meses.
+
+El procedimiento considera que las variables tienen diferentes características económicas, por lo que no corresponde aplicar la misma fórmula a todas.
+
+**Transformaciones según el tipo de indicador:**
+
+- **Tasas:** se calcula la diferencia respecto de 12 meses atrás, expresada en puntos porcentuales. Por ejemplo, si una tasa pasa de 5 % a 6 %, el cambio corresponde a 1 punto porcentual.
+- **Índices y niveles:** se calcula la variación porcentual respecto del valor de 12 meses atrás. Esto permite analizar, por ejemplo, el crecimiento de un índice de actividad económica.
+- **Variaciones mensuales:** se calcula la variación acumulada compuesta de los últimos 12 valores porcentuales. Este procedimiento se utiliza para indicadores como el IPC y el IPC SAE, que ya representan variaciones mensuales.
+
+**Funciones y comandos utilizados:**
+
+- `WITH`: crea una consulta temporal denominada `mensual`, utilizada para organizar los datos antes del cálculo.
+- `LAG(valor, 12)`: obtiene el valor ubicado 12 observaciones anteriores dentro de la misma serie.
+- `PARTITION BY`: separa los cálculos por indicador económico, evitando mezclar observaciones de distintas series.
+- `ORDER BY`: establece el orden cronológico de las observaciones.
+- `ROWS BETWEEN 11 PRECEDING AND CURRENT ROW`: define una ventana móvil que considera la observación actual y hasta 11 anteriores.
+- `CASE`: selecciona la transformación correspondiente según el tipo de indicador.
+- `SUM()` y `LN()`: intervienen en el cálculo de la composición de las variaciones mensuales.
+- `EXP()`: permite obtener el resultado de la acumulación compuesta.
+- `ROUND()`: redondea los resultados a dos decimales.
+
+**Resultado:** una tabla con el nombre del indicador, su tipo, el mes, el valor observado, la transformación calculada para 12 meses y la unidad correspondiente.
+
+Esta consulta permite analizar la evolución de los indicadores respetando sus unidades de medida y diferencias económicas.
+
+#### 4. Consideraciones metodológicas
+
+Para interpretar correctamente las variaciones de 12 meses, es necesario considerar la continuidad temporal y la disponibilidad de las observaciones.
+
+La función `LAG(valor, 12)` recupera el valor ubicado 12 filas anteriores, lo que corresponde a 12 meses atrás cuando existen observaciones mensuales consecutivas.
+
+Asimismo, la ventana móvil de 12 observaciones permite calcular la composición de las variaciones mensuales. Sin embargo, la consulta no comprueba explícitamente que todos los meses sean consecutivos ni que los 12 valores necesarios estén disponibles.
+
+Por lo tanto, antes de interpretar los resultados, se recomienda verificar la existencia de meses faltantes y valores nulos.
+
+Estas precauciones son importantes para evitar interpretaciones incorrectas de las variaciones económicas.
+
+#### 5. Ejecución de las consultas
+
+Una vez creada la base de datos mediante `carga.py` o `bd/crear_base.py`, se debe abrir el archivo `data/base.db` utilizando una herramienta compatible con SQLite.
+
+Posteriormente, se pueden ejecutar las instrucciones contenidas en `sql/consultas.sql`.
+
+Las tres consultas permiten:
+
+1. Comprobar las relaciones entre las tablas y la clasificación de los indicadores.
+2. Resumir y verificar las observaciones mensuales disponibles.
+3. Calcular transformaciones de 12 meses mediante funciones de ventana.
+
+En conjunto, constituyen herramientas para revisar la consistencia de la información y preparar los indicadores utilizados en el análisis de coyuntura económica del proyecto.
 
  
 ## Estructura del repositorio

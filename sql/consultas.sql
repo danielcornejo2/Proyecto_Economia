@@ -12,8 +12,10 @@ JOIN series AS s ON s.id_serie = o.id_serie
 JOIN temas  AS t ON t.id_tema  = s.id_tema
 ORDER BY t.tema, s.nombre, o.fecha;
 
--- 2) GROUP BY: lleva todas las series a frecuencia mensual. Las diarias (TPM, dólar, tasas) se promedian dentro del mes. 
---Las que ya son mensuales quedan igual, porqueel promedio deunn solo dato es ese dato. n_obs nos permite detectar meses incompletos
+-- 2) GROUP BY: agrupa por serie y mes las observaciones ya mensualizadas
+-- por los scripts de extracción. AVG calcula el promedio de los valores
+-- disponibles y COUNT cuenta las observaciones no nulas de cada mes.
+-- La frecuencia indicada corresponde a la frecuencia original de la API.
 SELECT s.nombre,
        s.frecuencia,
        strftime('%Y-%m', o.fecha) AS mes,
