@@ -20,14 +20,25 @@ CARPETA_SALIDA = RAIZ / "data" / "raw" / "fred"    # cada fuente tiene su propia
 # Series a descargar: {nombre_corto: código FRED}
 # Los nombres deben ser distintos a los de E_BCCH.py, porque el notebook junta ambas fuentes.
 # Las series con código None se omiten (sin marcar error) hasta que se complete su código.
+
 SERIES = {
-    # 11. Precio internacional del cobre (FMI), dólares por tonelada métrica, mensual
+    # 9. Precio internacional del cobre (FMI), dólares por tonelada métrica, mensual
+    #    Por qué: términos de intercambio de Chile; un cobre alto aprecia el peso (menos
+    #    inflación importada) pero impulsa la actividad (más inflación): efecto ambiguo
+    #    sobre la TPM, útil para contextualizar el escenario externo.
     "precio_cobre": "PCOPPUSDM",
-    # 12. Tasa de fondos federales (Fed Funds Rate), promedio mensual (%)
+    # 10. Tasa de fondos federales (Fed Funds Rate), promedio mensual (%)
+    #     Por qué: un alza de la Fed amplía el diferencial de tasas con Chile, presiona la
+    #     depreciación del peso y empuja la TPM al alza (signo +). Caputo y Herrera (2013)
+    #     encuentran una respuesta significativa de la TPM a esta tasa.
     "fed_funds": "FEDFUNDS",
-    # 13a. IPC de EE.UU. (todos los consumidores urbanos), índice 1982-84=100, desestacionalizado
+    # 11a. IPC de EE.UU. (todos los consumidores urbanos), índice 1982-84=100, desestacionalizado
+    #      Por qué: inflación externa que entra a Chile a través de los bienes importados;
+    #      más inflación en EE.UU. presiona la inflación local y la TPM (signo +).
     "ipc_eeuu": "CPIAUCSL",
-    # 13b. Índice de producción industrial de EE.UU., índice 2017=100, desestacionalizado
+    # 11b. Índice de producción industrial de EE.UU., índice 2017=100, desestacionalizado
+    #      Por qué: mide el ciclo de la demanda externa, que afecta las exportaciones y la
+    #      actividad en Chile (contexto, signo + leve sobre la TPM).
     "produccion_industrial_eeuu": "INDPRO",
 }
 
