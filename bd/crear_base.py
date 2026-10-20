@@ -70,11 +70,11 @@ CATALOGO = {
                              "Tasa de mercado secundario, bonos en pesos a 10 años (BCP/BTP)"),
     "tasa_bcu_10": MetaSerie("BCCh", "Diaria", "Tasas de mercado", "tasa", "% anual (en UF)",
                              "Tasa de mercado secundario, bonos en UF a 10 años (BCU/BTU)"),
-    "tasa_depositos_90d": MetaSerie("BCCh", "Diaria", "Tasas de mercado", "tasa", "% anual",
-                                    "Tasa de depósitos en bolsa a 90 días, pesos, mercado secundario"),
     "desempleo": MetaSerie("BCCh", "Mensual", "Mercado laboral", "tasa", "% de la fuerza de trabajo",
                            "Tasa de desocupación nacional, INE"),
+
     # ----- FRED -----
+    
     "precio_cobre": MetaSerie("FRED", "Mensual", "Externo", "nivel", "dólares por tonelada métrica",
                               "Precio internacional del cobre (FMI)"),
     "fed_funds": MetaSerie("FRED", "Mensual", "Externo", "tasa", "% anual",
