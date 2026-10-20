@@ -90,10 +90,11 @@ La selección cubre la variable objetivo (TPM), sus determinantes según la regl
 | 7 | `dolar_observado` | Dólar observado, promedio mensual | `F073.TCO.PRE.HIST.M` | BCCh | Mensual | Tipo de cambio |
 | 8 | `tasa_bcp_10` | Tasa de mercado secundario, bonos en pesos a 10 años | `F022.BCLP.TIS.AN10.NO.Z.D` | BCCh | Diaria | Tasas de mercado |
 | 9 | `tasa_bcu_10` | Tasa de mercado secundario, bonos en UF a 10 años | `F022.BUF.TIS.AN10.UF.Z.D` | BCCh | Diaria | Tasas de mercado |
-| 10 | `precio_cobre` | Precio internacional del cobre (FMI) | `PCOPPUSDM` | FRED | Mensual | Externo |
-| 11 | `fed_funds` | Tasa de fondos federales de EE.UU. | `FEDFUNDS` | FRED | Mensual | Externo |
-| 12 | `ipc_eeuu` | IPC de EE.UU. (CPI-U), desestacionalizado | `CPIAUCSL` | FRED | Mensual | Externo |
-| 13 | `produccion_industrial_eeuu` | Producción industrial de EE.UU. | `INDPRO` | FRED | Mensual | Externo |
+| 10 | `tasa_depositos_90d` | Tasa de interés de depósitos a 90 días | `F022.TDB.TIS.D090.NO.Z.D` | BCCh | Diaria | Tasas de mercado |
+| 11 | `precio_cobre` | Precio internacional del cobre (FMI) | `PCOPPUSDM` | FRED | Mensual | Externo |
+| 12 | `fed_funds` | Tasa de fondos federales de EE.UU. | `FEDFUNDS` | FRED | Mensual | Externo |
+| 13 | `ipc_eeuu` | IPC de EE.UU. (CPI-U), desestacionalizado | `CPIAUCSL` | FRED | Mensual | Externo |
+| 14 | `produccion_industrial_eeuu` | Producción industrial de EE.UU. | `INDPRO` | FRED | Mensual | Externo |
  
 ### Tratamiento de errores, datos faltantes y frecuencias
  
@@ -103,6 +104,7 @@ La selección cubre la variable objetivo (TPM), sus determinantes según la regl
 - **Rezago de publicación:** algunas series terminan antes de la fecha de corte porque se publican con rezago (por ejemplo, el Imacec y el precio del cobre).
 - **Historia disponible:** la desocupación parte en 2010-03 y el IPC SAE empalmado en 2010-01; ambas tienen más de 10 años de historia mensual.
 - **Errores de conexión:** cada descarga se reintenta hasta 3 veces. Si una serie falla, el script la informa como `ERROR` y continúa con las demás; al final lista las que fallaron.
+
 ### Base de datos
  
 Los CSV descargados se cargan en una base SQLite (`data/base.db`) con tres tablas relacionadas:
@@ -114,19 +116,87 @@ Los CSV descargados se cargan en una base SQLite (`data/base.db`) con tres tabla
 | `observaciones` | Una fila por serie y mes (`fecha` en formato `AAAA-MM-DD`, `valor`) | PK (`id_serie`, `fecha`); FK `id_serie` → `series` |
  
 Además, la vista `v_observaciones` une las tres tablas (tema, serie, fecha y valor).
+
+
+### Población de la base de datos
+
+La base de datos SQLite se construye mediante el script `bd/crear_base.py`, utilizando los archivos CSV descargados desde las API del Banco Central de Chile (BCCh) y FRED.
+
+El proceso de población se realiza en las siguientes etapas:
+
+1. **Lectura de los archivos:** el programa identifica los CSV almacenados en `data/raw/bcch/` y `data/raw/fred/`.
+
+2. **Validación de los datos:** comprueba que los archivos contengan las columnas `fecha`, `valor`, `serie` y `codigo`. Además, verifica que las fechas sean válidas, no estén duplicadas y que los valores sean numéricos.
+
+3. **Población de la tabla `temas`:** incorpora las 8 categorías económicas definidas en el proyecto, como política monetaria, precios, actividad económica y sector externo.
+
+4. **Población de la tabla `series`:** registra los 14 indicadores económicos con sus respectivos códigos, fuentes, frecuencias originales, tipos, unidades, descripciones y temas asociados.
+
+5. **Población de la tabla `observaciones`:** incorpora los valores mensuales de cada indicador junto con sus fechas. Los datos faltantes se almacenan como `NULL`, sin reemplazarlos por valores estimados.
+
+6. **Verificación de integridad:** comprueba que la base de datos sea válida y que las relaciones entre las tablas respeten las llaves foráneas.
+
+**Ejecución de la carga**
+
+Después de descargar los archivos CSV, la base de datos puede construirse mediante:
+
+```bash
+python bd/crear_base.py
+```
+
+También se puede automatizar todo el proceso de descarga y creación de la base con:
+
+```bash
+python carga.py --hasta 2026-09-30
+```
+
+El archivo generado se guarda en `data/base.db` y contiene las tres tablas relacionadas: `temas`, `series` y `observaciones`.
+
+
+### Consultas SQL
+
+El archivo `sql/consultas.sql` contiene tres consultas SQL que permiten explorar, organizar y analizar los indicadores económicos almacenados en la base de datos SQLite (`data/base.db`).
+
+**1. Consulta JOIN: relación entre tablas**
+
+Utiliza `JOIN` para relacionar las tablas `observaciones`, `series` y `temas` mediante sus llaves primarias y foráneas. Permite obtener cada observación junto con el nombre del indicador económico, su tema, tipo, unidad, frecuencia, fecha y valor.
+
+**2. Consulta GROUP BY: agrupación mensual**
+
+Utiliza `GROUP BY`, `AVG()` y `COUNT()` para agrupar las observaciones por serie y mes, calcular el promedio de sus valores y contar las observaciones disponibles.
+
+Como los datos ya se almacenan en frecuencia mensual, esta consulta permite resumir y verificar la información mensual de cada indicador.
+
+**3. Consulta con funciones de ventana: variación en 12 meses**
+
+Utiliza funciones como `LAG()`, `PARTITION BY` y ventanas móviles para calcular variaciones de los indicadores económicos durante un período de 12 meses.
+
+El cálculo depende del tipo de indicador:
+
+- **Tasas de interés:** diferencia respecto de 12 meses atrás, expresada en puntos porcentuales.
+- **Índices y niveles:** variación porcentual respecto de 12 meses atrás.
+- **Variaciones mensuales:** variación acumulada mediante la composición de los últimos 12 valores porcentuales.
+
+**Ejecución de las consultas**
+
+Una vez creada la base de datos, se debe abrir `data/base.db` mediante una herramienta compatible con SQLite y ejecutar las instrucciones contenidas en `sql/consultas.sql`.
+
+Estas consultas permiten comprobar las relaciones entre las tablas y obtener información para el análisis de coyuntura económica.
+
  
 ## Estructura del repositorio
  
 ```
 Proyecto_Economia/
 ├── extraccion/             # descarga de las series desde las APIs
-│   ├── E_BCCH.py           #   Banco Central de Chile -> data/raw/bcch/
-│   └── E_FRED.py           #   FRED -> data/raw/fred/
+│   ├── E_BCCH.py           # Banco Central de Chile -> data/raw/bcch/
+│   └── E_FRED.py           # FRED -> data/raw/fred/
 ├── bd/
 │   └── crear_base.py       # carga los CSV en la base SQLite data/base.db
+├── carga.py                # automatiza la descarga de las 14 series y la creación de la base
 ├── notebooks/              # análisis de coyuntura, regla de Taylor y proyección
 ├── data/                   # se genera al ejecutar; NO se sube a GitHub
-│   ├── raw/bcch/, raw/fred/   # CSV descargados, una subcarpeta por fuente
+│   ├── raw/bcch/, raw/fred/ # CSV descargados, una subcarpeta por fuente
 │   └── base.db             # base de datos relacional
 ├── configurar_entorno.py   # crea .venv, instala dependencias y prepara .env
 ├── .env.example            # plantilla de credenciales (el .env real no se sube)
@@ -181,8 +251,41 @@ FRED_API_KEY=tu_api_key_de_32_caracteres
 ```
  
 El archivo `.env` es personal, está en el `.gitignore` y **nunca se sube al repositorio**. Si ya tenías un `.env` antiguo, vuelve a ejecutar `configurar_entorno.py`: agrega las variables nuevas sin borrar las que ya tenías.
+
+
+### Ejecución automática del proceso de carga
+
+El proyecto incluye el archivo `carga.py`, que permite ejecutar automáticamente los scripts de extracción del Banco Central de Chile (BCCh) y FRED, y posteriormente construir la base de datos SQLite.
+
+Para ejecutar el proceso completo con la fecha de corte del Hito 2, utiliza:
+
+```bash
+python carga.py --hasta 2026-09-30
+```
+
+Este comando realiza las siguientes operaciones:
+
+1. Descarga las 10 series económicas del Banco Central de Chile.
+2. Descarga las 4 series económicas de FRED.
+3. Guarda los archivos CSV en las carpetas correspondientes de `data/raw/`.
+4. Ejecuta `bd/crear_base.py` para construir la base SQLite.
+5. Verifica el resultado de la carga y comunica si se producen errores.
+
+También se puede ejecutar sin indicar una fecha:
+
+```bash
+python carga.py
+```
+
+En ese caso, se utiliza la fecha de corte predeterminada (`2026-09-30`).
+
+**Importante:** Antes de ejecutar este comando, se debe haber configurado el entorno virtual y las credenciales del archivo `.env`.
+
+Los pasos 5 y 6 que aparecen a continuación permiten realizar manualmente la extracción y creación de la base de datos, en caso de que se prefiera ejecutar cada etapa por separado.
+
  
 ### 5. Descargar los datos con la fecha de corte
+
  
 ```bash
 python extraccion/E_BCCH.py --hasta 2026-09-30

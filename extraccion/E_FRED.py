@@ -1,3 +1,19 @@
+"""
+Extracción de series desde FRED (Federal Reserve Economic Data, Reserva Federal de St. Louis)
+usando su API oficial.
+
+Uso (desde la carpeta raíz del proyecto):
+    python extraccion/E_FRED.py                       # descarga todas las series de SERIES
+    python extraccion/E_FRED.py --buscar "copper"     # busca códigos de series (en inglés)
+
+Todas las series se guardan en frecuencia MENSUAL: las series diarias se convierten a
+promedio mensual, igual que en E_BCCH.py, para que todas queden comparables entre sí.
+Los CSV quedan en data/raw/fred/ (los del Banco Central van aparte, en data/raw/bcch/).
+
+La API key se lee desde el archivo .env (variable FRED_API_KEY, ver .env.example),
+que NO se sube a GitHub. Se obtiene gratis en https://fred.stlouisfed.org/docs/api/api_key.html
+"""
+
 import argparse
 import os
 import re
@@ -20,25 +36,14 @@ CARPETA_SALIDA = RAIZ / "data" / "raw" / "fred"    # cada fuente tiene su propia
 # Series a descargar: {nombre_corto: código FRED}
 # Los nombres deben ser distintos a los de E_BCCH.py, porque el notebook junta ambas fuentes.
 # Las series con código None se omiten (sin marcar error) hasta que se complete su código.
-
 SERIES = {
-    # 9. Precio internacional del cobre (FMI), dólares por tonelada métrica, mensual
-    #    Por qué: términos de intercambio de Chile; un cobre alto aprecia el peso (menos
-    #    inflación importada) pero impulsa la actividad (más inflación): efecto ambiguo
-    #    sobre la TPM, útil para contextualizar el escenario externo.
+    # 11. Precio internacional del cobre (FMI), dólares por tonelada métrica, mensual
     "precio_cobre": "PCOPPUSDM",
-    # 10. Tasa de fondos federales (Fed Funds Rate), promedio mensual (%)
-    #     Por qué: un alza de la Fed amplía el diferencial de tasas con Chile, presiona la
-    #     depreciación del peso y empuja la TPM al alza (signo +). Caputo y Herrera (2013)
-    #     encuentran una respuesta significativa de la TPM a esta tasa.
+    # 12. Tasa de fondos federales (Fed Funds Rate), promedio mensual (%)
     "fed_funds": "FEDFUNDS",
-    # 11a. IPC de EE.UU. (todos los consumidores urbanos), índice 1982-84=100, desestacionalizado
-    #      Por qué: inflación externa que entra a Chile a través de los bienes importados;
-    #      más inflación en EE.UU. presiona la inflación local y la TPM (signo +).
+    # 13a. IPC de EE.UU. (todos los consumidores urbanos), índice 1982-84=100, desestacionalizado
     "ipc_eeuu": "CPIAUCSL",
-    # 11b. Índice de producción industrial de EE.UU., índice 2017=100, desestacionalizado
-    #      Por qué: mide el ciclo de la demanda externa, que afecta las exportaciones y la
-    #      actividad en Chile (contexto, signo + leve sobre la TPM).
+    # 13b. Índice de producción industrial de EE.UU., índice 2017=100, desestacionalizado
     "produccion_industrial_eeuu": "INDPRO",
 }
 
@@ -142,6 +147,15 @@ def a_mensual(df):
     )
     return mensual[["fecha", "valor"]]
 
+def leer_fecha_corte(texto):
+    if texto is None:
+        return None
+    try:
+        return pd.to_datetime(texto, format="%Y-%m-%d")
+    except ValueError:
+        sys.exit(f"ERROR: la fecha de corte '{texto}' no tiene el formato AAAA-MM-DD "
+                 "(ejemplo: 2026-09-30).")
+
 
 def buscar_series(texto, api_key):
     """Muestra las series de FRED que coinciden con el texto buscado (en inglés)."""
@@ -164,8 +178,12 @@ def buscar_series(texto, api_key):
 def main():
     parser = argparse.ArgumentParser(description="Extrae series de FRED (Reserva Federal de St. Louis).")
     parser.add_argument("--buscar", help="texto a buscar en el catálogo de FRED (en inglés)")
+    parser.add_argument(
+        "--hasta",
+        help="fecha de corte AAAA-MM-DD: se descartan los datos posteriores a esa fecha",
+    )
     args = parser.parse_args()
-
+    hasta = leer_fecha_corte(args.hasta)
     api_key = cargar_api_key()
 
     if args.buscar:
@@ -173,6 +191,10 @@ def main():
         return
 
     CARPETA_SALIDA.mkdir(parents=True, exist_ok=True)
+    if hasta is not None:
+        print(f"Fecha de corte: {hasta:%Y-%m-%d} (se descartan los datos posteriores).")
+    else:
+        print("Sin fecha de corte: se descarga hasta el último dato disponible.")
     errores = []
     pendientes = []
     for nombre, codigo in SERIES.items():
@@ -183,7 +205,12 @@ def main():
 
         print(f"Descargando {nombre} ({codigo})...")
         try:
-            df = a_mensual(descargar_serie(codigo, api_key))
+            df = descargar_serie(codigo, api_key)
+            if hasta is not None:
+                df = df[df["fecha"] <= hasta]   # se descarta lo posterior a la fecha de corte
+            df = a_mensual(df)
+            if df.empty:
+                raise ValueError("la API no devolvió observaciones")
             if df.empty:
                 raise ValueError("la API no devolvió observaciones")
             df["serie"] = nombre

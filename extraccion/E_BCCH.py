@@ -10,55 +10,60 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-# ---------------------------------------------------------------------------
+
 # Configuración
-# ---------------------------------------------------------------------------
 
 URL_API = "https://si3.bcentral.cl/SieteRestWS/SieteRestWS.ashx"
 FECHA_INICIO = "2000-01-01"          # al menos 10 años de historia, según la pauta
 RAIZ = Path(__file__).resolve().parent.parent      # carpeta raíz del proyecto
 CARPETA_SALIDA = RAIZ / "data" / "raw" / "bcch"    # cada fuente tiene su propia carpeta
 
-# Series a descargar: {nombre_corto: código BDE}
-# Las series con código None están pendientes: el script las omite (sin marcar error)
-# hasta que se complete su código. Para encontrarlo, usar el texto sugerido con --buscar.
+
 SERIES = {
     # 1. Tasa de política monetaria, promedio mensual
-    #    Por qué: es la variable objetivo que se proyecta; sus valores pasados también la
-    #    explican, porque el Banco Central ajusta la tasa de forma gradual (inercia).
+    #    Variable objetivo del proyecto.
     "tpm": "F022.TPM.TIN.D001.NO.Z.M",
     # 2. IPC general, variación mensual (%)
-    #    Por qué: si la inflación se aleja de la meta de 3 %, el Banco Central ajusta la TPM
-    #    en la misma dirección (signo +). Se publica con rezago: usarla rezagada en los modelos.
+    #    Por qué: si la inflación se aleja de la meta de 3 %, el BCCh ajusta la TPM
+    #    en la misma dirección (signo +). Se publica con rezago: usar rezagada.
     "ipc": "F074.IPC.VAR.Z.Z.C.M",
     # 3. IPC SAE (sin alimentos ni energía), variación mensual (%), serie empalmada
-    #    por el INE (base 2023 = 100), disponible desde 2010-01.
-    #    Por qué: mide la inflación subyacente, sin los precios más volátiles; si sube, las
-    #    presiones inflacionarias son persistentes y la TPM tiende a subir (signo +).
+    #    por el INE (base 2023 = 100). Disponible desde 2010-01.
+    #    Por qué: inflación subyacente; muestra si las presiones de precios son
+    #    persistentes (signo +).
     "ipc_sae": "F074.IPCSAE.VAR.Z.EP23.Z.M",
     # 4. Imacec, índice original, referencia 2018
-    #    Por qué: con el filtro HP se obtiene la brecha de actividad de la regla de Taylor;
-    #    una economía sobre su potencial presiona la inflación y la TPM sube (signo +).
+    #    Por qué: con el filtro HP se obtiene la brecha de actividad de la regla de
+    #    Taylor; actividad sobre su potencial presiona la inflación (signo +).
     "imacec": "F032.IMC.IND.Z.Z.EP18.Z.Z.0.M",
     # 5. Tipo de cambio dólar observado, promedio mensual
-    #    Por qué: canal cambiario; una depreciación del peso encarece los bienes importados,
-    #    eleva la inflación y lleva a una TPM más alta (signo +).
+    #    Por qué: canal cambiario; una depreciación del peso encarece los bienes
+    #    importados y sube la inflación (signo +).
     "dolar_observado": "F073.TCO.PRE.HIST.M",
     # 6. Expectativa de inflación a 12 meses, Encuesta de Expectativas Económicas (EEE), mediana
-    #    Por qué: la regla de Taylor responde a la inflación esperada; expectativas sobre la
-    #    meta de 3 % anticipan alzas de la TPM (signo +). Se conoce antes que el IPC.
+    #    Por qué: la regla de Taylor responde a la inflación esperada; expectativas
+    #    sobre 3 % anticipan alzas de la TPM (signo +).
     "expectativa_ipc_eee": "F089.IPC.V12.14.M",
-    # 7a. Tasa de bonos en pesos a 10 años (BCP/BTP), mercado secundario. Serie diaria → promedio mensual
-    #     Por qué: refleja lo que el mercado espera de las tasas y la inflación futuras;
-    #     sirve para contextualizar la transmisión de la TPM a las tasas de largo plazo.
+    # 7a. Tasa de interés de mercado secundario, bonos en pesos a 10 años (BCP/BTP).
+    #     Serie diaria → promedio mensual. Reemplaza a la tasa de licitación BCP,
+    #     que se dejó de publicar en 2013.
+    #     Por qué: refleja las expectativas del mercado sobre tasas e inflación
+    #     futuras (canal de tasas de mercado).
     "tasa_bcp_10": "F022.BCLP.TIS.AN10.NO.Z.D",
-    # 7b. Tasa de bonos en UF a 10 años (BCU/BTU), mercado secundario. Serie diaria → promedio mensual
-    #     Por qué: es una tasa real de largo plazo; muestra cómo se transmite la TPM al
-    #     costo del crédito de largo plazo (contexto).
+    # 7b. Tasa BCU 10 años (bonos en UF), mercado secundario. Serie diaria → promedio mensual
+    #     Por qué: tasa real de largo plazo; muestra cómo se transmite la TPM a las
+    #     tasas de crédito.
     "tasa_bcu_10": "F022.BUF.TIS.AN10.UF.Z.D",
+    # 7c. Tasa de depósitos en bolsa a 90 días, en pesos, mercado secundario.
+    #     Serie diaria → promedio mensual. Disponible desde 2007-02.
+    #     Reemplaza a la tasa de los PDBC: sus tasas a 30 y 90 días se dejaron de
+    #     licitar y la de 14 días solo existe desde 2024.
+    #     Por qué: tasa de corto plazo del mercado monetario; incorpora lo que se
+    #     espera de la TPM en los próximos meses (signo +, adelanta).
+    "tasa_depositos_90d": "F022.TDB.TIS.D090.NO.Z.D",
     # 8. Tasa de desocupación nacional (%), INE
-    #    Por qué: mide la holgura del mercado laboral; más desempleo implica menos presión
-    #    salarial e inflacionaria, lo que favorece recortes de la TPM (signo −).
+    #    Por qué: mide la holgura del mercado laboral; más desempleo implica menos
+    #    presión salarial e inflacionaria (signo −).
     "desempleo": "F049.DES.TAS.INE9.10.M",
 }
 
@@ -148,6 +153,19 @@ def a_mensual(df):
     )
     return mensual[["fecha", "valor"]]
 
+def leer_fecha_corte(texto):
+    """
+    Convierte la fecha de corte escrita como 'AAAA-MM-DD' en una fecha de pandas.
+    Si no se indicó fecha, devuelve None (se descarga hasta el último dato).
+    Si el formato es incorrecto, detiene el script con un mensaje claro.
+    """
+    if texto is None:
+        return None
+    try:
+        return pd.to_datetime(texto, format="%Y-%m-%d")
+    except ValueError:
+        sys.exit(f"ERROR: la fecha de corte '{texto}' no tiene el formato AAAA-MM-DD "
+                 "(ejemplo: 2026-09-30).")
 
 def buscar_series(texto, usuario, clave, frecuencia="MONTHLY"):
     """Muestra las series del catálogo cuyo título contiene el texto buscado."""
@@ -168,7 +186,12 @@ def main():
         choices=["DAILY", "MONTHLY", "QUARTERLY", "ANNUAL"],
         help="frecuencia del catálogo en que se busca (por defecto MONTHLY)",
     )
+    parser.add_argument(
+        "--hasta",
+        help="fecha de corte AAAA-MM-DD: se descartan los datos posteriores a esa fecha",
+    )
     args = parser.parse_args()
+    hasta = leer_fecha_corte(args.hasta)
 
     usuario, clave = cargar_credenciales()
 
@@ -177,6 +200,10 @@ def main():
         return
 
     CARPETA_SALIDA.mkdir(parents=True, exist_ok=True)
+    if hasta is not None:
+        print(f"Fecha de corte: {hasta:%Y-%m-%d} (se descartan los datos posteriores).")
+    else:
+        print("Sin fecha de corte: se descarga hasta el último dato disponible.")
     errores = []
     pendientes = []
     for nombre, codigo in SERIES.items():
@@ -187,7 +214,12 @@ def main():
 
         print(f"Descargando {nombre} ({codigo})...")
         try:
-            df = a_mensual(descargar_serie(codigo, usuario, clave))
+            df = descargar_serie(codigo, usuario, clave)
+            if hasta is not None:
+                df = df[df["fecha"] <= hasta]
+            df = a_mensual(df)
+            if df.empty:
+                raise ValueError("no hay datos hasta la fecha de corte")
             df["serie"] = nombre
             df["codigo"] = codigo
             df.to_csv(CARPETA_SALIDA / f"{nombre}.csv", index=False)
