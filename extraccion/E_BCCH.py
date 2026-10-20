@@ -39,7 +39,7 @@ SERIES = {
     #    PENDIENTE: --buscar "operadores" --frecuencia DAILY  (la EOF es quincenal)
     "expectativa_ipc_eof": None,
     # 8a. Tasa BCP 10 años (bonos en pesos), mercado secundario. Serie diaria → promedio mensual
-    "tasa_bcp_10": "F022.BCP.TIN.AN10.NO.Z.D",
+    "tasa_bcp_10": "F022.BCLP.TIS.AN10.NO.Z.D",
     # 8b. Tasa BCU 10 años (bonos en UF), mercado secundario. Serie diaria → promedio mensual
     "tasa_bcu_10": "F022.BUF.TIS.AN10.UF.Z.D",
     # 8c. Tasa de los PDBC (pagarés descontables del Banco Central)
@@ -47,9 +47,6 @@ SERIES = {
     "tasa_pdbc": None,
     # 9. Tasa de desocupación nacional (%), INE
     "desempleo": "F049.DES.TAS.INE9.10.M",
-    # 10. Índice nominal de remuneraciones, INE
-    #     PENDIENTE: --buscar "remuneraciones"
-    "remuneraciones": None,
 }
 
 
