@@ -27,8 +27,7 @@ SERIES = {
     "tpm": "F022.TPM.TIN.D001.NO.Z.M",
     # 2. IPC general, variación mensual (%)
     "ipc": "F074.IPC.VAR.Z.Z.C.M",
-    # 3. IPC SAE (sin alimentos ni energía), variación mensual (%), base 2023
-    #    Verificar que cubra desde 2000; si parte en 2023, buscar la serie empalmada: --buscar "SAE"
+    # 3. IPC SAE (sin alimentos ni energía), variación mensual (%), base 2023    
     "ipc_sae": "F074.IPCSAE.VAR.Z.EP23.Z.M",
     # 4. Imacec, índice original, referencia 2018
     "imacec": "F032.IMC.IND.Z.Z.EP18.Z.Z.0.M",
