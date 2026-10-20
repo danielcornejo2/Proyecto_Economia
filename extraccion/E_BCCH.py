@@ -62,6 +62,7 @@ SERIES = {
     "desempleo": "F049.DES.TAS.INE9.10.M",
 }
 
+
 def cargar_credenciales():
     """Lee usuario y clave desde .env y avisa si faltan."""
     load_dotenv(RAIZ / ".env")
