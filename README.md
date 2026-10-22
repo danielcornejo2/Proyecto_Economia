@@ -1,4 +1,4 @@
-# La TPM en Chile: monitor de coyuntura y proyección con una regla de política monetaria
+# La TPM en Chile: monitor de coyuntura y proyección con una regla de política monetaria.
 
 **Proyecto del curso Ciencia de Datos para la Economía (ICO09425), Facultad de Administración y Economía, Universidad Diego Portales.**
 
