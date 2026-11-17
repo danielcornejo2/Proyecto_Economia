@@ -189,3 +189,231 @@ Las características particulares de cada
 serie y las transformaciones aplicadas
 se documentarán en los siguientes apartados.
 
+## 6. Descripción de las series económicas
+
+### 6.1. Catálogo de variables
+
+El proyecto utiliza 13 series económicas provenientes
+del Banco Central de Chile (BCCh) y de Federal Reserve
+Economic Data (FRED).
+
+Estas variables permiten analizar la evolución de la
+Tasa de Política Monetaria (TPM), sus principales
+determinantes macroeconómicos y las condiciones
+económicas nacionales e internacionales.
+
+La TPM corresponde a la variable objetivo de la
+investigación, mientras que las demás series cumplen
+funciones explicativas o de contextualización económica.
+
+### 6.2. Series del Banco Central de Chile
+
+El proyecto considera nueve series provenientes
+del Banco Central de Chile.
+
+| Serie | Código API | Unidad | Frecuencia original |
+|---|---|---|---|
+| TPM | F022.TPM.TIN.D001.NO.Z.M | % anual | Mensual |
+| IPC | F074.IPC.VAR.Z.Z.C.M | % variación mensual | Mensual |
+| IPC SAE | F074.IPCSAE.VAR.Z.EP23.Z.M | % variación mensual | Mensual |
+| Imacec | F032.IMC.IND.Z.Z.EP18.Z.Z.0.M | Índice 2018=100 | Mensual |
+| Dólar observado | F073.TCO.PRE.HIST.M | Pesos por dólar | Mensual |
+| Expectativas EEE | F089.IPC.V12.14.M | % | Mensual |
+| Tasa BCP 10 años | F022.BCLP.TIS.AN10.NO.Z.D | % anual | Diaria |
+| Tasa BCU 10 años | F022.BUF.TIS.AN10.UF.Z.D | % anual (en UF) | Diaria |
+| Desempleo | F049.DES.TAS.INE9.10.M | % de la fuerza de trabajo | Mensual |
+
+### 6.3. Función económica de las variables nacionales
+
+**Tasa de Política Monetaria (TPM)**
+
+Constituye la variable principal del proyecto.
+Representa el instrumento utilizado por el Banco
+Central de Chile para conducir la política monetaria
+y contribuir al cumplimiento de la meta de inflación.
+
+El análisis busca estudiar su comportamiento
+histórico y elaborar pronósticos sobre su
+trayectoria futura.
+
+**Índice de Precios al Consumidor (IPC)**
+
+Permite analizar la evolución de la inflación
+general de la economía chilena.
+
+Su importancia radica en que las desviaciones
+de la inflación respecto de la meta del Banco
+Central constituyen uno de los elementos
+considerados en las decisiones de política monetaria.
+
+**IPC sin alimentos ni energía (IPC SAE)**
+
+Representa una medida de inflación subyacente
+que excluye los componentes de alimentos y energía.
+
+Permite analizar las presiones inflacionarias
+subyacentes y complementar el estudio del IPC general.
+
+**Índice Mensual de Actividad Económica (Imacec)**
+
+Proporciona información sobre la evolución
+de la actividad económica chilena.
+
+En el proyecto se utiliza como insumo para
+estimar la brecha de actividad mediante
+el filtro de Hodrick-Prescott.
+
+Esta brecha permite estudiar si la actividad
+económica se encuentra por encima o por
+debajo de su tendencia estimada.
+
+**Dólar observado**
+
+Representa el tipo de cambio nominal
+entre el peso chileno y el dólar estadounidense.
+
+Permite analizar el canal cambiario y
+su posible relación con las presiones
+inflacionarias y la política monetaria.
+
+**Expectativas de inflación (EEE)**
+
+Corresponden a las expectativas de inflación
+a 12 meses obtenidas mediante la Encuesta
+de Expectativas Económicas.
+
+Esta variable permite estudiar las
+perspectivas inflacionarias y su relación
+con las decisiones del Banco Central.
+
+**Tasa BCP a 10 años**
+
+Corresponde a una tasa de interés de
+bonos en pesos a largo plazo.
+
+Se utiliza para contextualizar las
+condiciones del mercado financiero
+y la transmisión de la política monetaria.
+
+**Tasa BCU a 10 años**
+
+Representa una tasa de interés de
+bonos denominados en UF a largo plazo.
+
+Permite analizar las condiciones de
+financiamiento real y complementar
+el estudio de las tasas de mercado.
+
+**Tasa de desempleo**
+
+Mide la proporción de personas desocupadas
+respecto de la fuerza de trabajo.
+
+Esta variable permite analizar las
+condiciones del mercado laboral y
+las posibles presiones sobre la
+actividad económica y la inflación.
+
+### 6.4. Series de Federal Reserve Economic Data
+
+El proyecto incorpora cuatro series económicas
+internacionales provenientes de FRED.
+
+| Serie | Código API | Unidad | Frecuencia original |
+|---|---|---|---|
+| Precio del cobre | PCOPPUSDM | Dólares por tonelada métrica | Mensual |
+| Fed Funds Rate | FEDFUNDS | % anual | Mensual |
+| IPC de Estados Unidos | CPIAUCSL | Índice 1982-84=100 | Mensual |
+| Producción industrial de EE.UU. | INDPRO | Índice 2017=100 | Mensual |
+
+### 6.5. Función económica de las variables internacionales
+
+**Precio internacional del cobre**
+
+Permite incorporar información sobre los
+términos de intercambio de la economía chilena.
+
+Dado que el cobre constituye una exportación
+relevante para Chile, sus variaciones pueden
+influir sobre la actividad económica y
+el tipo de cambio.
+
+**Tasa de fondos federales de Estados Unidos**
+
+Representa una medida de las condiciones
+monetarias estadounidenses.
+
+Su incorporación permite estudiar la relación
+entre las tasas internacionales, las condiciones
+financieras y el comportamiento de la TPM chilena.
+
+**Índice de Precios al Consumidor de Estados Unidos**
+
+Permite analizar la evolución del nivel
+de precios de la economía estadounidense.
+
+Esta variable proporciona información sobre
+las condiciones inflacionarias externas,
+relevantes para una economía abierta como Chile.
+
+**Producción industrial estadounidense**
+
+Representa un indicador de la actividad
+industrial de Estados Unidos.
+
+Permite contextualizar las condiciones
+de la demanda externa y su posible
+relación con la actividad económica chilena.
+
+### 6.6. Clasificación de las variables
+
+Las series económicas pueden organizarse
+según la función prevista en el proyecto.
+
+**Variable objetivo:**
+
+- Tasa de Política Monetaria (TPM).
+
+**Variables explicativas consideradas:**
+
+- IPC general.
+- IPC SAE.
+- Expectativas de inflación EEE.
+- Imacec y brecha de actividad.
+- Tasa de desempleo.
+- Dólar observado.
+- Tasa de fondos federales.
+
+**Variables de contexto económico:**
+
+- Precio internacional del cobre.
+- IPC de Estados Unidos.
+- Producción industrial estadounidense.
+- Tasas BCP y BCU a 10 años.
+
+Esta clasificación corresponde al planteamiento
+documentado en el repositorio original.
+
+La selección definitiva de variables utilizadas
+en cada modelo de pronóstico deberá coincidir
+con la especificación implementada en Python.
+
+### 6.7. Importancia del conjunto de datos
+
+La integración de estas 13 series permite
+estudiar la TPM desde una perspectiva
+macroeconómica que considera factores
+nacionales e internacionales.
+
+Las variables de precios, actividad y
+expectativas proporcionan información
+relevante para el marco de la regla de Taylor.
+
+Por su parte, los indicadores financieros
+y externos permiten complementar el análisis
+de las condiciones económicas que enfrenta Chile.
+
+De esta manera, el conjunto de datos
+constituye la base para desarrollar el
+diagnóstico de coyuntura y los modelos
+de pronóstico correspondientes al Hito 3.
