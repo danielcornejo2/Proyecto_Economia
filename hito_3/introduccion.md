@@ -165,3 +165,110 @@ Posteriormente, el proyecto buscará evaluar
 modelos de pronóstico que permitan analizar
 la trayectoria futura de la TPM y comparar
 sus resultados con un modelo de referencia.
+
+## 5. Motivación y objetivos de la investigación
+
+### 5.1. Motivación económica
+
+El análisis de la Tasa de Política Monetaria (TPM)
+resulta relevante para comprender las decisiones
+del Banco Central de Chile frente a los cambios
+en las condiciones macroeconómicas.
+
+La TPM constituye uno de los principales instrumentos
+para mantener la estabilidad de precios, debido a
+que sus modificaciones influyen en las tasas de
+interés, el consumo, la inversión y las expectativas
+de los agentes económicos.
+
+Durante los últimos años, la economía chilena ha
+experimentado importantes cambios en materia de
+inflación, actividad económica y condiciones
+financieras, lo que ha generado modificaciones
+en la orientación de la política monetaria.
+
+En este contexto, estudiar los determinantes de
+la TPM permite comprender su comportamiento
+histórico y analizar las condiciones que podrían
+influir en su trayectoria futura.
+
+La investigación también busca evaluar la
+capacidad de diferentes modelos para pronosticar
+la evolución de la TPM, utilizando información
+macroeconómica nacional e internacional.
+
+De esta manera, el proyecto combina herramientas
+de ciencia de datos con fundamentos económicos,
+permitiendo desarrollar un análisis basado en
+información oficial y procedimientos reproducibles.
+
+### 5.2. Objetivo general
+
+Analizar la evolución de la Tasa de Política
+Monetaria en Chile y proyectar su trayectoria
+esperada durante los próximos 6 a 24 meses,
+considerando sus principales determinantes
+macroeconómicos y una regla de política
+monetaria estimada con datos chilenos.
+
+### 5.3. Objetivos específicos
+
+1. Examinar la evolución histórica de la TPM
+   y su comportamiento frente a los cambios
+   en las condiciones macroeconómicas.
+
+2. Analizar la relación entre la TPM y variables
+   como la inflación, las expectativas, la
+   actividad económica y el tipo de cambio.
+
+3. Incorporar indicadores internacionales
+   que permitan contextualizar las condiciones
+   económicas externas que enfrenta Chile.
+
+4. Utilizar los datos obtenidos mediante las
+   APIs del Banco Central de Chile y FRED
+   para desarrollar un diagnóstico de coyuntura.
+
+5. Estudiar la relación entre la TPM y sus
+   principales determinantes mediante el
+   marco económico de la regla de Taylor.
+
+6. Elaborar pronósticos de la TPM utilizando
+   modelos de series de tiempo o métodos
+   econométricos adecuados para el análisis.
+
+7. Evaluar el desempeño de los modelos
+   mediante una comparación fuera de muestra
+   con un benchmark ingenuo y utilizando
+   métricas de error.
+
+8. Interpretar económicamente los resultados
+   obtenidos, identificando las principales
+   conclusiones y limitaciones del estudio.
+
+### 5.4. Contribución del estudio
+
+El principal aporte de esta investigación
+consiste en integrar información macroeconómica
+proveniente de distintas fuentes oficiales
+para estudiar el comportamiento de la TPM.
+
+El proyecto utiliza un proceso de extracción,
+almacenamiento y análisis de datos mediante
+herramientas como Python y SQL, permitiendo
+organizar la información de manera reproducible.
+
+A partir de esta infraestructura, se busca
+desarrollar un diagnóstico económico y evaluar
+modelos de pronóstico que permitan analizar
+la trayectoria esperada de la TPM.
+
+Asimismo, la utilización de la regla de Taylor
+como marco de referencia permitirá relacionar
+los resultados cuantitativos con los fundamentos
+de la política monetaria chilena.
+
+Finalmente, el estudio busca presentar los
+resultados de manera clara, identificando
+tanto los principales hallazgos económicos
+como las limitaciones de las proyecciones.
