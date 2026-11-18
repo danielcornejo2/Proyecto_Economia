@@ -417,3 +417,224 @@ De esta manera, el conjunto de datos
 constituye la base para desarrollar el
 diagnóstico de coyuntura y los modelos
 de pronóstico correspondientes al Hito 3.
+
+## 7. Período, frecuencia y tratamiento de los datos
+
+### 7.1. Período de estudio
+
+El proyecto utiliza información macroeconómica
+proveniente del Banco Central de Chile (BCCh)
+y de Federal Reserve Economic Data (FRED).
+
+De acuerdo con la configuración utilizada en
+el Hito 2, la extracción considera como fecha
+inicial el 1 de enero de 2000 y establece
+como fecha de corte el 30 de septiembre de 2026.
+
+Sin embargo, no todas las variables presentan
+información disponible desde el mismo año.
+
+Por esta razón, el período efectivo de cada
+serie depende de su disponibilidad en las
+respectivas fuentes de información.
+
+Entre las diferencias registradas en el
+repositorio se encuentran:
+
+- IPC SAE: disponible desde enero de 2010.
+- Expectativas EEE: disponibles desde enero de 2001.
+- Desempleo: disponible desde marzo de 2010.
+- Tasa BCP a 10 años: disponible desde julio de 2004.
+- Tasa BCU a 10 años: disponible desde septiembre de 2002.
+
+Asimismo, algunas variables presentan
+rezagos en su última observación disponible.
+
+Para la fecha de corte del Hito 2:
+
+- El Imacec presenta información hasta agosto de 2026.
+- La tasa de desempleo llega hasta agosto de 2026.
+- El precio internacional del cobre llega hasta
+  julio de 2026.
+
+Estas diferencias deben considerarse al
+integrar las series y construir los modelos
+de pronóstico.
+
+La fecha de corte definitiva del Hito 3
+deberá coincidir con la utilizada en
+la ejecución final del pipeline.
+
+### 7.2. Frecuencia de las variables
+
+Las series económicas utilizadas en el
+proyecto presentan frecuencias originales
+diarias y mensuales.
+
+Para facilitar su integración, el proceso
+de extracción y almacenamiento utiliza
+una frecuencia mensual común.
+
+Las observaciones que originalmente
+presentan frecuencia mensual mantienen
+sus valores correspondientes a cada mes.
+
+En cambio, las series de frecuencia diaria
+se convierten mediante el cálculo de
+promedios mensuales.
+
+Este procedimiento se aplica, por ejemplo,
+a las siguientes variables:
+
+- Tasa BCP a 10 años.
+- Tasa BCU a 10 años.
+
+La conversión permite trabajar con
+observaciones comparables en términos
+temporales y facilita la integración
+de los indicadores macroeconómicos.
+
+### 7.3. Conversión a frecuencia mensual
+
+Los archivos de extracción del proyecto,
+E_BCCH.py y E_FRED.py, incorporan una
+función denominada a_mensual().
+
+Esta función permite transformar las
+observaciones a frecuencia mensual
+utilizando herramientas de pandas.
+
+El procedimiento organiza los datos
+por mes y calcula el promedio de los
+valores disponibles cuando corresponde.
+
+Además, las fechas se representan
+utilizando el primer día de cada mes.
+
+Por ejemplo, las observaciones de
+septiembre de 2026 quedan asociadas
+a la fecha 2026-09-01.
+
+Este criterio permite mantener una
+estructura temporal uniforme para
+las diferentes series económicas.
+
+### 7.4. Tratamiento de valores faltantes
+
+Las series económicas pueden presentar
+observaciones faltantes debido a diferencias
+en su disponibilidad o publicación.
+
+Según la documentación del Hito 2,
+el conjunto de datos registra ocho
+valores faltantes:
+
+- Siete correspondientes a la Encuesta
+  de Expectativas Económicas (EEE).
+- Uno correspondiente al IPC de
+  Estados Unidos.
+
+El proceso de almacenamiento conserva
+las observaciones sin información
+mediante valores NULL en SQLite.
+
+De esta manera, los registros faltantes
+no se reemplazan automáticamente
+por valores estimados.
+
+Este procedimiento permite identificar
+los meses sin información y evita
+introducir valores artificiales
+durante la construcción de la base.
+
+El tratamiento específico de estos
+registros para los modelos deberá
+documentarse según las decisiones
+metodológicas finalmente aplicadas.
+
+### 7.5. Validación de los datos
+
+El proyecto incorpora procedimientos
+de validación para comprobar la
+consistencia de la información
+antes de almacenarla.
+
+El archivo crear_base.py verifica
+diferentes aspectos de los CSV
+generados durante la extracción.
+
+Entre las principales validaciones
+se encuentran:
+
+1. Comprobar que los archivos contengan
+   las columnas requeridas.
+
+2. Verificar que las fechas presenten
+   el formato establecido.
+
+3. Detectar observaciones con fechas
+   duplicadas dentro de una misma serie.
+
+4. Comprobar que los valores registrados
+   correspondan a información numérica.
+
+5. Verificar la correspondencia entre
+   cada serie y su identificación.
+
+6. Revisar la integridad de la base
+   de datos mediante controles de SQLite.
+
+Estas verificaciones permiten disminuir
+el riesgo de errores durante la carga
+y mantener una estructura consistente
+para los análisis posteriores.
+
+### 7.6. Almacenamiento de las observaciones
+
+Una vez procesadas, las series se
+incorporan a una base de datos
+relacional construida en SQLite.
+
+La información se organiza mediante
+tres tablas principales:
+
+- temas: clasificación temática.
+- series: identificación y características
+  de cada indicador económico.
+- observaciones: fechas y valores
+  asociados a las series.
+
+Esta estructura permite almacenar
+los datos de forma organizada
+y relacionar cada observación
+con su respectiva variable económica.
+
+Además, facilita la ejecución de
+consultas SQL para recuperar y
+transformar las series utilizadas
+en el análisis.
+
+### 7.7. Importancia del tratamiento de datos
+
+La preparación de la información
+constituye una etapa fundamental
+para el desarrollo del Hito 3.
+
+La integración de las series en
+frecuencia mensual permite analizar
+su evolución dentro de una
+estructura temporal común.
+
+Asimismo, la identificación de
+observaciones faltantes y la
+validación de los archivos permiten
+reconocer posibles limitaciones
+de los datos disponibles.
+
+Estos procedimientos contribuyen
+a la reproducibilidad del proyecto
+y proporcionan una base organizada
+para desarrollar el diagnóstico
+de coyuntura y la evaluación
+de los modelos de pronóstico.
+
