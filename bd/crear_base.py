@@ -128,6 +128,17 @@ CREATE TABLE observaciones (
 CREATE INDEX idx_observaciones_fecha ON observaciones (fecha);
 CREATE INDEX idx_series_tema ON series (id_tema);
 
+-- Tabla de proyecciones de la TPM para el Hito 3
+CREATE TABLE IF NOT EXISTS
+proyeciones_tpm (
+       fecha TEXT NOT NULL,
+       modelo TEXT NOT NULL,
+       valor_predicho REAL,
+       ic_inferior REAL,
+       ic_superior REAL,
+       PRIMARY KEY (fecha, modelo)
+);
+
 -- Vista de consolidación: cada observación con su serie y su tema
 CREATE VIEW v_observaciones AS
 SELECT t.tema,
