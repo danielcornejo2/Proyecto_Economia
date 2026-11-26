@@ -28,7 +28,7 @@
 
 ---
 
-## Resumen del avance (Hito 2)
+## Resumen del avance.
 
 | Requisito de la pauta | Dónde está | Estado |
 |---|---|---|
