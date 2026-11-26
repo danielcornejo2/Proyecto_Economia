@@ -67,3 +67,46 @@ La Regla de Taylor proyecta una disminución gradual de la TPM, desde 4,50 % en 
 Sin embargo, los resultados deben interpretarse con cautela debido a los supuestos del escenario y al desempeño del modelo frente al benchmark ingenuo.
 
 Estas proyecciones deberán complementarse con los resultados de los demás modelos y la evaluación conjunta del proyecto.
+
+
+## 7. Evaluación fuera de muestra a distintos horizontes
+
+Para evaluar la capacidad predictiva de la Regla de Taylor a mediano y largo plazo, se realizaron nueve ejercicios de pronóstico con fechas de corte entre septiembre de 2016 y septiembre de 2024.
+
+En cada corte se estimaron los coeficientes utilizando los datos disponibles hasta esa fecha. Posteriormente, se construyeron pronósticos recursivos a 6, 12 y 24 meses, manteniendo constantes las variables explicativas en sus últimos valores disponibles al momento de la proyección.
+
+Los pronósticos se compararon con un modelo ingenuo, que supone que la TPM permanece constante en el valor observado al inicio de cada período.
+
+### Resultados de la evaluación
+
+| Horizonte | MAE Taylor | RMSE Taylor | MAE ingenuo | RMSE ingenuo |
+|---|---:|---:|---:|---:|
+| 6 meses | 1,1648 | 1,5547 | 1,0311 | 1,6430 |
+| 12 meses | 2,7167 | 3,6135 | 2,0944 | 3,4113 |
+| 24 meses | 4,5252 | 6,8272 | 3,6767 | 4,9713 |
+
+Las métricas se expresan en puntos porcentuales de la TPM.
+
+### Interpretación económica
+
+A seis meses, los resultados son mixtos: el modelo ingenuo presenta un menor MAE, mientras que la Regla de Taylor alcanza un menor RMSE.
+
+A doce meses, el modelo ingenuo registra menores errores en ambas métricas. Esta diferencia también se observa a veinticuatro meses, donde la Regla de Taylor presenta errores considerablemente mayores.
+
+En general, los resultados muestran que la Regla de Taylor no supera de manera consistente al modelo ingenuo en los horizontes analizados.
+
+Una posible explicación es la persistencia de la TPM y la dificultad de proyectar su trayectoria durante períodos de cambios importantes en las condiciones económicas.
+
+### Limitaciones de la evaluación
+
+Los pronósticos se construyeron manteniendo constantes las variables explicativas. Por ello, los resultados dependen de este supuesto y no representan necesariamente el desempeño de un modelo que incorpore pronósticos de inflación, actividad y tasas internacionales.
+
+Además, la evaluación considera nueve cortes temporales, con períodos de pronóstico que pueden superponerse. Esto limita la cantidad de evidencia independiente disponible para comparar los modelos.
+
+Los resultados permiten evaluar el desempeño histórico del procedimiento utilizado, pero no garantizan que el comportamiento futuro sea similar.
+
+### Implicancias para el proyecto
+
+La Regla de Taylor resulta útil para analizar la relación entre la política monetaria y sus determinantes macroeconómicos. Sin embargo, su capacidad predictiva debe contrastarse con modelos alternativos.
+
+Por esta razón, las proyecciones futuras a 6, 12 y 24 meses se presentan como un escenario condicionado, cuya interpretación deberá complementarse con los demás modelos del Hito 3.
