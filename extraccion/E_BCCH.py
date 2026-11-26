@@ -42,8 +42,9 @@ SERIES = {
     #    presiones inflacionarias son persistentes y la TPM tiende a subir (signo +).
     "ipc_sae": "F074.IPCSAE.VAR.Z.EP23.Z.M",
     # 4. Imacec, índice original, referencia 2018
-    #    Por qué: con el filtro HP se obtiene la brecha de actividad de la regla de Taylor;
-    #    una economía sobre su potencial presiona la inflación y la TPM sube (signo +).
+    #    Por qué: desestacionalizado y con el filtro HP (ambos en el notebook) se obtiene la brecha
+    #    de actividad de la regla de Taylor; una economía sobre su potencial presiona la inflación
+    #    y la TPM sube (signo +).
     "imacec": "F032.IMC.IND.Z.Z.EP18.Z.Z.0.M",
     # 5. Tipo de cambio dólar observado, promedio mensual
     #    Por qué: canal cambiario; una depreciación del peso encarece los bienes importados,
@@ -61,7 +62,8 @@ SERIES = {
     #     Por qué: es una tasa real de largo plazo; muestra cómo se transmite la TPM al
     #     costo del crédito de largo plazo (contexto).
     "tasa_bcu_10": "F022.BUF.TIS.AN10.UF.Z.D",
-    # 8. Tasa de desocupación nacional (%), INE
+    # 8. Tasa de desocupación nacional (%), INE. Trimestre móvil (promedio de 3 meses), con fecha
+    #    del último mes del trimestre: el dato de marzo es enero–marzo. Disponible desde 2010-03.
     #    Por qué: mide la holgura del mercado laboral; más desempleo implica menos presión
     #    salarial e inflacionaria, lo que favorece recortes de la TPM (signo −).
     "desempleo": "F049.DES.TAS.INE9.10.M",
