@@ -1,42 +1,20 @@
-# Hito 3 - Ciencia de Datos para la Economía
+# Hito 3: entrega final
 
-## Descripción del proyecto
+Carpeta con los resultados y los textos de apoyo del informe final del proyecto
+"La TPM en Chile: monitor de coyuntura y proyección con una regla de política monetaria".
 
-La TPM en Chile: monitor de coyuntura y proyección
-con una regla de política monetaria.
+Todo su contenido se regenera con `python ejecutar_todo.py` desde la raíz del proyecto.
 
-El Hito 3 corresponde a la etapa final del proyecto,
-en la cual se utilizarán los datos obtenidos en los
-hitos anteriores para desarrollar un diagnóstico
-macroeconómico y evaluar pronósticos de la Tasa
-de Política Monetaria (TPM) en Chile.
+| Carpeta o archivo | Contenido |
+|---|---|
+| `resultados/` | Tablas de resultados (CSV): correlaciones, selección del ARIMA, significancia de la regla de Taylor, evaluaciones fuera de muestra y proyecciones |
+| `graficos/` | Gráficos de los modelos (PNG) |
+| `dashboard/` | Láminas del dashboard en Python (coyuntura, semáforo y proyección) y tabla del semáforo |
+| `introduccion.md` | Contexto, pregunta y objetivos |
+| `datos.md` | Fuentes, series y tratamiento de los datos |
+| `resultados_taylor.md` | Estimación y evaluación de la regla de Taylor |
+| `analisis_proyecciones.md` | Comparación de modelos, proyección a 24 meses y escenarios de riesgo |
+| `estructura_informe.md` | Estructura del informe final |
+| `guia_ejecucion_taylor.md` | Cómo ejecutar los scripts de la regla de Taylor |
 
-## Objetivo
-
-Analizar la evolución de la TPM y proyectar su
-trayectoria futura considerando sus principales
-determinantes macroeconómicos.
-
-## Datos
-
-El proyecto utiliza 13 series económicas provenientes
-del Banco Central de Chile (BCCh) y de FRED.
-
-## Desarrollo del Hito 3
-
-Se incorporarán progresivamente:
-
-- Introducción y objetivos.
-- Descripción de datos y fuentes.
-- Documentación del proceso API, SQL y Python.
-- Diagnóstico de coyuntura económica.
-- Metodología de pronóstico.
-- Evaluación de resultados.
-- Discusión y conclusiones.
-- Informe final.
-
-## Entrega
-
-El proyecto contempla un informe final, una
-presentación con dashboard elaborado en Python
-y un repositorio con código reproducible.
+La descripción completa del proyecto está en el README principal.

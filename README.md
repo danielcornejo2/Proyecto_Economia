@@ -206,11 +206,11 @@ El notebook `notebooks/02_analisis_coyuntura.ipynb` lee las consultas, aplica la
 
 - **TPM:** 4,5 %, 6,75 puntos porcentuales bajo su máximo de 11,25 % (2022–2023) y estable en los últimos meses.
 - **Inflación:** el IPC total crece 4,2 % anual, en el límite superior del rango de tolerancia; el IPC SAE, 3,4 %. La presión se concentra en los componentes volátiles y no en una presión de demanda generalizada.
-- **Actividad:** la brecha HP promedia −1,5 % en el último trimestre (se usa el promedio porque el filtro es inestable en el extremo de la muestra). La economía opera bajo su potencial.
-- **Tipo de cambio:** el peso sigue débil en perspectiva histórica, pero en 12 meses se apreció 1,4 % en términos nominales y 2,5 % en términos reales.
+- **Actividad:** la brecha HP promedia −1,3 % en el último trimestre, aunque el último dato es +0,5 % (el valor que muestra el dashboard). Se usa el promedio para el diagnóstico porque el filtro HP es inestable en el extremo de la muestra: el último dato puede cambiar bastante cuando llegan nuevos meses. En promedio, la economía opera levemente bajo su potencial.
+- **Tipo de cambio:** el peso sigue débil en perspectiva histórica, pero en 12 meses se apreció 1,4 % en términos nominales y 1,8 % en términos reales.
 - **Expectativas:** la EEE a 12 meses está en 3,3 %, levemente sobre la meta.
 
-**Lectura:** el diagnóstico apunta a un shock de oferta. En la regla de Taylor los dos términos tiran en direcciones opuestas: la inflación pide una TPM más alta y la brecha negativa una más baja. Eso es consistente con que el BCCh mantenga la tasa en 4,5 %, mientras las expectativas de mediano plazo sigan ancladas.
+**Lectura:** el diagnóstico apunta a un shock de oferta. En la regla de Taylor los dos términos tiran en direcciones opuestas: la inflación pide una TPM más alta y la brecha, negativa en el promedio del trimestre, una más baja. Eso es consistente con que el BCCh mantenga la tasa en 4,5 %, mientras las expectativas de mediano plazo sigan ancladas.
 
 ---
 
