@@ -70,12 +70,16 @@ metricas.to_csv(
     encoding="utf-8-sig"
 )
 
-# Guardar pronósticos y valores observados por mes
+# Guardar pronósticos y errores mensuales
 detalle = pd.DataFrame({
     "mes": prueba.index,
     "tpm_real": real.to_numpy(),
     "taylor": pred_taylor.to_numpy(),
     "ingenuo": pred_ingenuo.to_numpy(),
+    "error_taylor": (real - pred_taylor).to_numpy(),
+    "error_ingenuo": (real - pred_ingenuo).to_numpy(),
+    "error_abs_taylor": (real - pred_taylor).abs().to_numpy(),
+    "error_abs_ingenuo": (real - pred_ingenuo).abs().to_numpy(),
 })
 
 detalle.to_csv(
