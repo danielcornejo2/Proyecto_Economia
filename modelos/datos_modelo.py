@@ -162,10 +162,12 @@ def brecha_tiempo_real(imacec: pd.Series, minimo: int = MESES_MINIMOS_HP) -> pd.
 # ---------------------------------------------------------------------------
 # 3. Panel para los modelos
 # ---------------------------------------------------------------------------
-def armar_panel(ruta_bd: Path = RUTA_BD, eliminar_faltantes: bool = True) -> pd.DataFrame:
+# DESPUÉS
+def armar_panel(ruta_bd: Path = RUTA_BD, eliminar_faltantes: bool = True,
+                incluir_mes_siguiente: bool = False) -> pd.DataFrame:
     """
     Devuelve el panel mensual de modelación. En la fila t:
-      tpm                   TPM promedio del mes t (variable a pronosticar)
+    tpm                   TPM de fin del mes t (variable a pronosticar)
       tpm_lag1              TPM del mes anterior (componente inercial de la regla)
       brecha_inflacion_esp  expectativa de inflación a 12 meses (EEE) menos la meta de 3 %
       inflacion_12m         inflación anual del IPC (calculada en SQL)
@@ -175,6 +177,14 @@ def armar_panel(ruta_bd: Path = RUTA_BD, eliminar_faltantes: bool = True) -> pd.
     Todas las explicativas ya vienen rezagadas según REZAGO_PUBLICACION.
     """
     niveles, var12 = leer_consultas(ruta_bd)
+
+    if incluir_mes_siguiente:
+        # Se agrega una fila vacía para el mes siguiente al último dato. Al aplicar los
+        # rezagos de publicación, esa fila queda con lo que se sabe al cierre del último
+        # mes: es la fila con la que se pronostica (ver fila_pronostico).
+        siguiente = niveles.index.max() + pd.offsets.MonthBegin(1)
+        indice = niveles.index.append(pd.DatetimeIndex([siguiente]))
+        niveles, var12 = niveles.reindex(indice), var12.reindex(indice)
 
     def disponible(serie: pd.Series, nombre: str) -> pd.Series:
         """Desplaza la serie según cuándo se publica (ver REZAGO_PUBLICACION)."""
@@ -198,6 +208,25 @@ def armar_panel(ruta_bd: Path = RUTA_BD, eliminar_faltantes: bool = True) -> pd.
         # sin EEE. No se rellenan: inventar un dato también contaminaría la estimación.
         panel = panel.dropna()
     return panel
+
+def fila_pronostico(ruta_bd: Path = RUTA_BD) -> pd.Series:
+    """
+    Fila del primer mes a pronosticar: el mes siguiente al último dato (el corte).
+
+    La última fila de armar_panel() es la del corte, y por construcción solo trae lo
+    que se conocía al cierre del mes ANTERIOR al corte. Para proyectar desde el corte
+    hay que usar todo lo que se sabe al cierre del corte, así que se arma la fila del
+    mes siguiente con los mismos rezagos de publicación.
+    Con corte en sep-2026 la fila es oct-2026: EEE y Fed Funds de septiembre, brecha
+    de julio (el Imacec se publica con 3 meses de rezago) y TPM de septiembre como
+    tpm_lag1. La columna tpm queda vacía: es justamente lo que se va a pronosticar.
+    """
+    fila = armar_panel(ruta_bd, eliminar_faltantes=False, incluir_mes_siguiente=True).iloc[-1]
+    necesarias = ["tpm_lag1", "brecha_inflacion_esp", "brecha_actividad", "fed_funds"]
+    faltantes = [c for c in necesarias if pd.isna(fila[c])]
+    if faltantes:
+        raise ValueError(f"Faltan datos al cierre del corte para: {faltantes}")
+    return fila
 
 
 # ---------------------------------------------------------------------------
