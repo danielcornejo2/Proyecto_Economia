@@ -44,6 +44,7 @@ PASOS = [
     ("Gráfico de proyección de Taylor",          ["-m", "modelos.grafico_proyeccion_taylor"]),
     ("Comparación de modelos",                   ["-m", "modelos.comparacion_modelos"]),
     ("Proyección con escenarios y carga a la base", ["-m", "modelos.proyeccion_escenarios"]),
+    ("Dashboard en Python", ["-m", "dashboard.dashboard_tpm"]),
 ]
 
 
