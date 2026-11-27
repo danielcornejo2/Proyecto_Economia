@@ -476,7 +476,7 @@ A septiembre de 2026, la inflación IPC (4,17 %) y la expectativa EEE (3,30 %) e
 
 ### Lámina 3: Proyección y desempeño de los modelos
 
-A la izquierda, la TPM efectiva y su proyección a 24 meses: ARIMA(2,1,0) con su intervalo de 80 %, los cuatro escenarios de la regla de Taylor y la caminata aleatoria como benchmark. El ARIMA y la caminata aleatoria coinciden en 4,50 %, y los escenarios base y convergencia de la regla casi se superponen. A la derecha, el error fuera de muestra (RMSE) de cada modelo a 6, 12 y 24 meses, de la comparación principal (ARIMA(2,1,2), cortes 2016–2024).
+A la izquierda, la TPM efectiva y su proyección a 24 meses: ARIMA(2,1,0) con su intervalo de 80 %, los cuatro escenarios de la regla de Taylor y la caminata aleatoria como benchmark. El ARIMA y la caminata aleatoria proyectan 4,50 % a septiembre de 2028, mientras que la regla de Taylor alcanza 4,36 % en el escenario base y 3,97 % en convergencia. Esta diferencia refleja el efecto de los supuestos macroeconómicos sobre la trayectoria proyectada de la TPM. A la derecha, se presenta el error fuera de muestra (RMSE) de cada modelo a 6, 12 y 24 meses, según la comparación principal (ARIMA(2,1,2), cortes 2016–2024).
 
 ![Proyección](salidas/dashboard/3_proyeccion.png)
 
