@@ -59,9 +59,15 @@ MODELOS = ["Caminata aleatoria", "Regla de Taylor", "ARIMA"]
 def pronostico_taylor(panel: pd.DataFrame, corte: pd.Timestamp, pasos: int) -> list[float]:
     """Trayectoria de la regla de Taylor estimada hasta el corte (igual que evaluacion_horizontes.py)."""
     coef, _ = estimar_regla_taylor(panel, corte.strftime("%Y-%m-%d"))
-    ultimo = panel.loc[corte]
-    fijo = float(coef["constante"]) + sum(float(coef[v] * ultimo[v]) for v in VARIABLES_FIJAS)
-    tpm, trayectoria = float(ultimo["tpm"]), []
+        # TPM observada hasta el corte y explicativas disponibles para el siguiente mes
+    fila_siguiente = panel.loc[corte + pd.offsets.MonthBegin(1)]
+    tpm_inicial = float(panel.loc[corte, "tpm"])
+
+    fijo = float(coef["constante"]) + sum(
+        float(coef[v] * fila_siguiente[v]) for v in VARIABLES_FIJAS
+    )
+
+    tpm, trayectoria = tpm_inicial, []
     for _ in range(pasos):
         tpm = fijo + float(coef["tpm_lag1"]) * tpm
         trayectoria.append(tpm)
