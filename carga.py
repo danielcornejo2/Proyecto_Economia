@@ -28,10 +28,20 @@ def descargar_fuente(modulo, descargar, hasta):
     errores = []
 
     for nombre, codigo in modulo.SERIES.items():
+        if codigo is None:
+            print(f"  [OMITIDA] {nombre}: código pendiente en SERIES.")
+            continue
         try:
             df = descargar(codigo)
-            df = df[df["fecha"] <= hasta]      # se descartan los datos posteriores al corte
-            df = modulo.a_mensual(df)          # series diarias -> promedio mensual
+            df = df[df["fecha"] <= hasta]      #  se descartan los datos posteriores al corte
+            if nombre == "tpm":
+                # Decisión: la TPM se resume con el último dato del mes (no el promedio), porque
+                # cambia en fechas puntuales y el promedio daría tasas que nunca estuvieron vigentes.
+                # Parte en 2001-08: antes la TPM estaba indexada a la UF (no es comparable).
+                df = df[df["fecha"] >= pd.Timestamp(E_BCCH.INICIO_TPM)]
+                df = modulo.a_mensual(df, metodo="last")
+            else:
+                df = modulo.a_mensual(df)      # series diarias -> promedio mensual
             if df.empty:
                 raise ValueError("la API no devolvió datos hasta la fecha de corte")
 

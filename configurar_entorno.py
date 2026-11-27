@@ -95,8 +95,7 @@ def main():
         print(f"  - Abre el archivo .env y completa: {', '.join(pendientes)}")
     print("  - En VS Code: Select Interpreter → .venv (la terminal se activará sola)")
     print(f"  - Fuera de VS Code:       {activar}")
-    print("  - Descarga los datos:     python extraccion/E_BCCH.py")
-    print("                            python extraccion/E_FRED.py")
+    print("  - Descarga los datos y crea la base: python carga.py")
 
 
 if __name__ == "__main__":
