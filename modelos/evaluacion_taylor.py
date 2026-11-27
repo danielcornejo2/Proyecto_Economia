@@ -1,4 +1,7 @@
+from pathlib import Path
+
 import numpy as np
+import pandas as pd
 
 from modelos.datos_modelo import armar_panel
 from modelos.regla_taylor import estimar_regla_taylor
@@ -50,3 +53,35 @@ print("Evaluación fuera de muestra")
 print("Meses evaluados:", len(prueba))
 print(f"Regla de Taylor: MAE={mae_taylor:.4f}, RMSE={rmse_taylor:.4f}")
 print(f"Modelo ingenuo: MAE={mae_ingenuo:.4f}, RMSE={rmse_ingenuo:.4f}")
+
+# Guardar métricas de evaluación
+carpeta = Path("salidas/resultados")
+carpeta.mkdir(parents=True, exist_ok=True)
+
+metricas = pd.DataFrame({
+    "modelo": ["Regla de Taylor", "Caminata aleatoria"],
+    "mae": [mae_taylor, mae_ingenuo],
+    "rmse": [rmse_taylor, rmse_ingenuo],
+})
+
+metricas.to_csv(
+    carpeta / "evaluacion_taylor_metricas.csv",
+    index=False,
+    encoding="utf-8-sig"
+)
+
+# Guardar pronósticos y valores observados por mes
+detalle = pd.DataFrame({
+    "mes": prueba.index,
+    "tpm_real": real.to_numpy(),
+    "taylor": pred_taylor.to_numpy(),
+    "ingenuo": pred_ingenuo.to_numpy(),
+})
+
+detalle.to_csv(
+    carpeta / "evaluacion_taylor_detalle.csv",
+    index=False,
+    encoding="utf-8-sig"
+)
+
+print("Métricas y detalle de Taylor guardados en CSV")
