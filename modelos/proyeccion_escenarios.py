@@ -53,7 +53,7 @@ from statsmodels.tsa.arima.model import ARIMA
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 from modelos.arima_tpm import elegir_orden  # noqa: E402
-from modelos.datos_modelo import RUTA_BD, armar_panel  # noqa: E402
+from modelos.datos_modelo import RUTA_BD, armar_panel, fila_pronostico
 from modelos.regla_taylor import estimar_regla_taylor  # noqa: E402
 
 warnings.filterwarnings("ignore")
@@ -188,8 +188,10 @@ def graficar(tpm: pd.Series, proyecciones: pd.DataFrame, ruta: Path) -> None:
 if __name__ == "__main__":
     panel = armar_panel()
     corte = panel.index.max()
-    ultimo = panel.loc[corte]
-    tpm_inicial = float(ultimo["tpm"])
+
+# Información disponible al cierre del mes de corte
+    ultimo = fila_pronostico()
+    tpm_inicial = float(ultimo["tpm_lag1"])
     meses = pd.date_range(corte + pd.offsets.MonthBegin(1), periods=HORIZONTE, freq="MS")
     filas = []
 
