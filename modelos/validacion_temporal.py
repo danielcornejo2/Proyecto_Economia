@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 from modelos.datos_modelo import armar_panel
 from modelos.regla_taylor import estimar_regla_taylor
@@ -77,3 +78,14 @@ tabla = pd.DataFrame(resultados)
 
 print("\nValidación temporal de la Regla de Taylor")
 print(tabla.to_string(index=False))
+# Guardar resultados de la validación temporal
+carpeta = Path("salidas/resultados")
+carpeta.mkdir(parents=True, exist_ok=True)
+
+tabla.to_csv(
+    carpeta / "validacion_temporal_taylor.csv",
+    index=False,
+    encoding="utf-8-sig"
+)
+
+print("Resultados guardados en salidas/resultados/validacion_temporal_taylor.csv")
