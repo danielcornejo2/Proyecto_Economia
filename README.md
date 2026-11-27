@@ -706,6 +706,8 @@ Todo lo que está en `resultados/`, `graficos/` y `dashboard/` se regenera con `
 | `graficos/comparacion_modelos_rmse.png` | `comparacion_modelos.py` | RMSE por modelo y horizonte |
 | `graficos/proyeccion_escenarios.png` | `proyeccion_escenarios.py` | Proyección por modelo y escenario |
 | `dashboard/1_coyuntura.png`, `2_semaforo.png`, `3_proyeccion.png`, `semaforo.csv` | `dashboard_tpm.py` | Láminas del dashboard |
+| `resultados/evaluacion_taylor_metricas.csv`, `evaluacion_taylor_detalle.csv` | `evaluacion_taylor.py` | MAE, RMSE y pronósticos mensuales de Taylor vs caminata aleatoria (2025–2026) |
+| `resultados/validacion_temporal_taylor.csv` | `validacion_temporal.py` | MAE y RMSE de Taylor y caminata aleatoria en cuatro cortes temporales |
 
 Los archivos `.md` de `salidas/` (`introduccion.md`, `datos.md`, `resultados_taylor.md`, `analisis_proyecciones.md`, `estructura_informe.md` y `guia_ejecucion_taylor.md`) son borradores de trabajo; su contenido está integrado en este README.
 
