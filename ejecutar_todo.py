@@ -62,7 +62,7 @@ def main():
 
     minutos = (time.time() - inicio) / 60
     print(f"\n[OK] Proyecto completo ejecutado en {minutos:.1f} minutos. "
-          "Resultados en hito_3/resultados y gráficos en hito_3/graficos.")
+          "Resultados en salidas/resultados y gráficos en salidas/graficos.")
 
 
 if __name__ == "__main__":

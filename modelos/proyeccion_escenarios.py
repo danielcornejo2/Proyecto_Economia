@@ -31,8 +31,8 @@ proyecciones y métricas a data/base.db (hito de sincronización del plan).
 Uso (desde la raíz del proyecto):
     python -m modelos.proyeccion_escenarios
 Resultados:
-    hito_3/resultados/proyeccion_escenarios.csv
-    hito_3/graficos/proyeccion_escenarios.png
+    salidas/resultados/proyeccion_escenarios.csv
+    salidas/graficos/proyeccion_escenarios.png
     tablas proyecciones_tpm y metricas_modelos en data/base.db
 """
 
@@ -98,7 +98,7 @@ def proyectar_taylor(coef: pd.Series, tpm_inicial: float, determinantes: pd.Data
 
 def guardar_en_bd(proyecciones: pd.DataFrame, ruta_bd: Path = RUTA_BD) -> pd.DataFrame:
     """Recrea las tablas de proyecciones y métricas dentro de la base del proyecto."""
-    carpeta = RAIZ / "hito_3" / "resultados"
+    carpeta = RAIZ / "salidas" / "resultados"
     metricas = []
     fuentes = {
         "Cortes sep-2016 a sep-2024": ("comparacion_modelos_resumen.csv", "cortes"),
@@ -217,8 +217,8 @@ if __name__ == "__main__":
     agregar("Caminata aleatoria", "Sin cambio", np.repeat(tpm_inicial, HORIZONTE))
 
     proyecciones = pd.DataFrame(filas)
-    carpeta_res = RAIZ / "hito_3" / "resultados"
-    carpeta_graf = RAIZ / "hito_3" / "graficos"
+    carpeta_res = RAIZ / "salidas" / "resultados"
+    carpeta_graf = RAIZ / "salidas" / "graficos"
     carpeta_res.mkdir(parents=True, exist_ok=True)
     carpeta_graf.mkdir(parents=True, exist_ok=True)
     proyecciones.round(4).to_csv(carpeta_res / "proyeccion_escenarios.csv", index=False)
@@ -238,5 +238,5 @@ if __name__ == "__main__":
               f"{arima.loc[h, 'li_80']:.2f} % a {arima.loc[h, 'ls_80']:.2f} %")
     print(f"\nGuardado en data/base.db: proyecciones_tpm ({len(proyecciones)} filas) y "
           f"metricas_modelos ({len(metricas)} filas).")
-    print("Archivos: hito_3/resultados/proyeccion_escenarios.csv y "
-          "hito_3/graficos/proyeccion_escenarios.png")
+    print("Archivos: salidas/resultados/proyeccion_escenarios.csv y "
+          "salidas/graficos/proyeccion_escenarios.png")

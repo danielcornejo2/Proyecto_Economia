@@ -80,7 +80,7 @@ resumen[["tpm_taylor", "tpm_ingenua"]] = resumen[
 print(resumen.to_string(index=False))
 
 # Guardamos los resultados
-carpeta = Path("hito_3/resultados")
+carpeta = Path("salidas/resultados")
 carpeta.mkdir(parents=True, exist_ok=True)
 
 ruta = carpeta / "proyeccion_taylor_24m.csv"

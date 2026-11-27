@@ -1,9 +1,0 @@
-,variable,rezago_meses,correlacion,correlacion_rezago_0,signo_esperado,signo_observado
-eee_brecha,Expectativa EEE − meta,1,0.714,0.707,+,+
-desempleo,"Desempleo (cambio 12m, pp)",24,0.686,-0.339,−,+
-ipc,Inflación IPC (12m),0,0.655,0.655,+,+
-ipc_sae,Inflación SAE (12m),0,0.549,0.549,+,+
-imacec,Imacec (var. 12m),9,0.526,0.207,+,+
-precio_cobre,Cobre (var. 12m),12,0.502,-0.048,+/−,+
-fed_funds,"Fed Funds (cambio 12m, pp)",0,0.39,0.39,+,+
-dolar_observado,Dólar (var. 12m),9,-0.332,-0.025,+,−

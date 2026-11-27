@@ -31,9 +31,9 @@ Métricas (en puntos porcentuales de TPM):
 Uso (desde la raíz del proyecto):
     python modelos/evaluacion_arima.py
 Resultados:
-    hito_3/resultados/evaluacion_arima_metricas.csv
-    hito_3/resultados/evaluacion_arima_detalle.csv
-    hito_3/graficos/evaluacion_arima.png
+    salidas/resultados/evaluacion_arima_metricas.csv
+    salidas/resultados/evaluacion_arima_detalle.csv
+    salidas/graficos/evaluacion_arima.png
 """
 
 from __future__ import annotations
@@ -141,8 +141,8 @@ if __name__ == "__main__":
                         ignore_index=True)
     tabla = metricas(detalle, modelos)
 
-    carpeta_res = RAIZ / "hito_3" / "resultados"
-    carpeta_graf = RAIZ / "hito_3" / "graficos"
+    carpeta_res = RAIZ / "salidas" / "resultados"
+    carpeta_graf = RAIZ / "salidas" / "graficos"
     carpeta_res.mkdir(parents=True, exist_ok=True)
     carpeta_graf.mkdir(parents=True, exist_ok=True)
     tabla.round(4).to_csv(carpeta_res / "evaluacion_arima_metricas.csv", index=False)
@@ -152,4 +152,4 @@ if __name__ == "__main__":
     print("Errores fuera de muestra (puntos porcentuales de TPM):\n")
     print(tabla.round(3).to_string(index=False))
     print("\nLectura: R² OOS > 0 significa que el modelo le gana a la caminata aleatoria.")
-    print("Archivos guardados en hito_3/resultados y hito_3/graficos")
+    print("Archivos guardados en salidas/resultados y salidas/graficos")

@@ -24,9 +24,9 @@ con dato observado es 2024-09. Los resultados orientan, no son concluyentes.
 Uso (desde la raíz del proyecto):
     python -m modelos.comparacion_modelos
 Resultados:
-    hito_3/resultados/comparacion_modelos_resumen.csv
-    hito_3/resultados/comparacion_modelos_detalle.csv
-    hito_3/graficos/comparacion_modelos_rmse.png
+    salidas/resultados/comparacion_modelos_resumen.csv
+    salidas/resultados/comparacion_modelos_detalle.csv
+    salidas/graficos/comparacion_modelos_rmse.png
 """
 
 from __future__ import annotations
@@ -135,8 +135,8 @@ if __name__ == "__main__":
     detalle, orden = evaluar(panel)
     resumen = resumir(detalle)
 
-    carpeta_res = RAIZ / "hito_3" / "resultados"
-    carpeta_graf = RAIZ / "hito_3" / "graficos"
+    carpeta_res = RAIZ / "salidas" / "resultados"
+    carpeta_graf = RAIZ / "salidas" / "graficos"
     carpeta_res.mkdir(parents=True, exist_ok=True)
     carpeta_graf.mkdir(parents=True, exist_ok=True)
     resumen.round(4).to_csv(carpeta_res / "comparacion_modelos_resumen.csv", index=False)
@@ -147,4 +147,4 @@ if __name__ == "__main__":
     print("Comparación fuera de muestra (puntos porcentuales de TPM):\n")
     print(resumen.round(3).to_string(index=False))
     print("\nR² OOS > 0: el modelo le gana a la caminata aleatoria.")
-    print("Archivos guardados en hito_3/resultados y hito_3/graficos")
+    print("Archivos guardados en salidas/resultados y salidas/graficos")

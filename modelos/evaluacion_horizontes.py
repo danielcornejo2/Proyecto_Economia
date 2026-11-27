@@ -108,7 +108,7 @@ resumen = pd.DataFrame(resumen)
 print(resumen.to_string(index=False))
 
 # Guardar resultados para el informe
-carpeta = Path("hito_3/resultados")
+carpeta = Path("salidas/resultados")
 carpeta.mkdir(parents=True, exist_ok=True)
 
 tabla.to_csv(
