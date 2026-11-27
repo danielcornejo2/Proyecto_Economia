@@ -245,7 +245,7 @@ El notebook `notebooks/02_analisis_coyuntura.ipynb` lee las consultas, aplica la
 
 **Lectura:** el diagnóstico apunta a un shock de oferta. En la regla de Taylor los dos términos tiran en direcciones opuestas: la inflación pide una TPM más alta y la brecha, negativa en el promedio del trimestre, una más baja. Eso es consistente con que el BCCh mantenga la tasa en 4,5 %, mientras las expectativas de mediano plazo sigan ancladas.
 
-> **Nota sobre la brecha de actividad.** En el proyecto aparecen tres medidas, cada una con un uso distinto: el **promedio del último trimestre** (−1,3 %), para el diagnóstico; el **último dato del HP en tiempo real** (+0,5 %), que muestra el dashboard; y la **brecha con rezago de publicación** que usa la proyección (−1,09 %), calculada solo con el Imacec que ya se conocía al momento de proyectar (ver sección 9).
+> **Nota sobre la brecha de actividad.** En el proyecto aparecen tres medidas, cada una con un uso distinto: el **promedio del último trimestre** (−1,3 %), utilizado para el diagnóstico; el **último dato del HP en tiempo real** (+0,5 %), correspondiente a septiembre de 2026 y mostrado en el dashboard; y la **brecha con rezago de publicación** que utiliza la proyección (−1,76 %), calculada con información del Imacec hasta julio de 2026, disponible al cierre de septiembre. Esta distinción evita incorporar información que todavía no se conocía al momento de proyectar (ver sección 9).
 
 ---
 
@@ -345,7 +345,7 @@ RMSE; entre paréntesis, el R² fuera de muestra frente a la caminata aleatoria:
 - **La regla de Taylor solo mejora al benchmark a 6 meses.** A 12 y 24 meses pierde, porque sus determinantes se mantienen fijos en el valor del corte y no recogen los cambios posteriores en inflación y actividad (por ejemplo, el shock de 2021–2022).
 - **A 24 meses ningún modelo supera con claridad a la caminata aleatoria.**
 
-Archivos: `salidas/resultados/comparacion_modelos_resumen.csv`, `comparacion_modelos_detalle.csv` y `salidas/graficos/comparacion_modelos_rmse.png`. La evaluación solo de la regla a estos horizontes está en `modelos/evaluacion_horizontes.py`.
+**Archivos generados:** `modelos/proyeccion_escenarios.py` genera `salidas/resultados/proyeccion_escenarios.csv`, `salidas/graficos/proyeccion_escenarios.png` y las tablas `proyecciones_tpm` y `metricas_modelos` en SQLite. Por separado, `modelos/proyeccion_taylor.py` genera `salidas/resultados/proyeccion_taylor_24m.csv`, mientras que `modelos/grafico_proyeccion_taylor.py` genera el gráfico `salidas/graficos/proyeccion_tpm_24m.png`.
 
 ### Evaluaciones complementarias
 
@@ -384,42 +384,45 @@ La regla obtiene menor RMSE que el benchmark en los cortes de 2021, 2022 y 2023,
 
 ## 11. Proyección a 24 meses y escenarios de riesgo
 
-`modelos/proyeccion_escenarios.py` proyecta desde septiembre de 2026 (TPM 4,50 %) con tres modelos:
+`modelos/proyeccion_escenarios.py` proyecta la TPM desde el cierre de septiembre de 2026 (4,50 %) hasta septiembre de 2028.
 
-- **Regla de Taylor**, estimada con toda la muestra. La proyección es recursiva: cada valor proyectado se usa como la TPM rezagada del mes siguiente. Los determinantes parten de la última fila del panel (información conocida al cierre de agosto de 2026: brecha de inflación esperada 0,1 pp, brecha de actividad −1,09 %, Fed Funds 3,63 %).
-- **ARIMA(2,1,0)**, con un intervalo de confianza de 80 %. El límite inferior no baja de 0,5 %, el mínimo histórico de la TPM (2020).
-- **Caminata aleatoria** (benchmark): la TPM se mantiene en 4,50 %.
+Se consideran tres modelos:
+
+- **Regla de Taylor:** estimada con la muestra disponible hasta septiembre de 2026. La proyección es recursiva: cada TPM pronosticada se utiliza como rezago del mes siguiente. Para iniciar el pronóstico de octubre se usa `fila_pronostico()`, que incorpora la información conocida al cierre de septiembre: EEE de 3,3 % (brecha de inflación esperada de +0,3 pp), brecha de actividad de −1,76 % correspondiente al Imacec de julio y Fed Funds disponible al corte.
+- **ARIMA:** genera una trayectoria de la TPM y un intervalo de confianza del 80 %.
+- **Caminata aleatoria:** mantiene constante la última TPM observada, de 4,50 %.
 
 ### Escenarios de la regla de Taylor
 
-Los tamaños de los shocks son ilustrativos: muestran hacia dónde y cuánto se movería la TPM según la regla, no son pronósticos de esas variables.
+Los shocks son supuestos ilustrativos y no pronósticos de las variables explicativas.
 
 | Escenario | Supuesto |
 |---|---|
-| Base | Determinantes constantes en su último valor |
-| Convergencia | Las expectativas vuelven a la meta de 3 % y la brecha de actividad se cierra, ambas de forma lineal en 12 meses (Fed Funds constante) |
-| Riesgo al alza | Expectativas 1 pp sobre su nivel actual (por ejemplo, por una depreciación o un shock de petróleo) y la Fed sube 0,5 pp |
-| Riesgo a la baja | Actividad 2 pp bajo su tendencia (recesión global), expectativas −0,5 pp y la Fed recorta 1 pp |
+| Base | Expectativas, brecha de actividad y Fed Funds constantes en sus últimos valores disponibles |
+| Convergencia | Las expectativas retornan a la meta de 3 % y la brecha de actividad se cierra gradualmente en 12 meses |
+| Riesgo al alza | Las expectativas aumentan 1 pp y Fed Funds sube 0,5 pp |
+| Riesgo a la baja | La brecha de actividad disminuye 2 pp, las expectativas bajan 0,5 pp y Fed Funds cae 1 pp |
 
-### Resultados
+### Resultados de Taylor corregidos
 
-| Modelo / escenario | 6 meses (mar-2027) | 12 meses (sep-2027) | 24 meses (sep-2028) |
+| Escenario | 6 meses (mar-2027) | 12 meses (sep-2027) | 24 meses (sep-2028) |
 |---|---:|---:|---:|
-| Taylor: base | 4,21 % | 4,05 % | 3,90 % |
-| Taylor: convergencia | 4,21 % | 4,04 % | 3,89 % |
-| Taylor: riesgo al alza | 5,75 % | 6,47 % | 7,10 % |
-| Taylor: riesgo a la baja | 3,07 % | 2,26 % | 1,54 % |
-| ARIMA(2,1,0) | 4,50 % | 4,50 % | 4,50 % |
-| Intervalo 80 % del ARIMA | 2,64 % a 6,36 % | 1,23 % a 7,77 % | 0,50 % a 9,72 % |
+| Base | 4,43 % | 4,39 % | 4,36 % |
+| Convergencia | 4,37 % | 4,19 % | 3,97 % |
+| Riesgo al alza | 5,98 % | 6,82 % | 7,56 % |
+| Riesgo a la baja | 3,29 % | 2,61 % | 2,00 % |
 | Caminata aleatoria | 4,50 % | 4,50 % | 4,50 % |
+
+Los resultados de Taylor fueron recalculados utilizando la información disponible al cierre del período de estimación. Las proyecciones ARIMA y sus intervalos deben verificarse por separado antes de actualizar sus cifras.
 
 ### Interpretación económica
 
-- **Escenario base: recortes graduales.** Con las expectativas y la actividad del último dato disponible, la regla indica espacio para bajar la TPM de 4,50 % a cerca de 3,9 % en dos años. El escenario de convergencia da casi lo mismo porque, en la información que usa el modelo, las brechas son pequeñas y de signo opuesto (expectativas +0,1 pp, actividad −1,09 %), así que cerrarlas casi no cambia la trayectoria.
-- **El ARIMA proyecta una tasa estable** (4,50 %) y coincide con la caminata aleatoria: la TPM no se ha movido en los últimos meses y el modelo no detecta una tendencia que extrapolar.
-- **El principal riesgo es la inflación esperada.** Como la regla responde con fuerza a las expectativas (efecto de largo plazo de 3,4), si se desanclan 1 pp la TPM debería subir a cerca de 7 % en dos años.
-- **A la baja, una recesión global** llevaría la TPM a cerca de 1,5 %.
-- **El intervalo del ARIMA** confirma que la incertidumbre a 24 meses es muy alta.
+- **Escenario base:** la Regla de Taylor proyecta una reducción moderada de la TPM desde 4,50 % hasta aproximadamente 4,36 % en dos años.
+- **Convergencia:** si las expectativas retornan a la meta y la brecha de actividad se cierra, la TPM proyectada disminuye hasta 3,97 %. Esta trayectoria es distinta del escenario base.
+- **Riesgo al alza:** un aumento de las expectativas de inflación y de Fed Funds eleva la TPM proyectada hasta aproximadamente 7,56 %.
+- **Riesgo a la baja:** un deterioro de la actividad, acompañado de menores expectativas y tasas externas, reduce la TPM proyectada hasta aproximadamente 2,00 %.
+
+La diferencia respecto de las proyecciones anteriores se explica por la actualización del conjunto de información utilizado para iniciar el pronóstico. No corresponde atribuirla únicamente al cambio en la expectativa de inflación.
 
 Archivos: `salidas/resultados/proyeccion_escenarios.csv`, `salidas/graficos/proyeccion_escenarios.png` y la tabla `proyecciones_tpm` de la base. La proyección de la regla en el escenario base también se genera por separado con `modelos/proyeccion_taylor.py` (`proyeccion_taylor_24m.csv` y `proyeccion_tpm_24m.png`).
 
@@ -433,13 +436,13 @@ Estas trayectorias son proyecciones condicionadas de los modelos, no decisiones 
 
 - La **regla de Taylor es útil para explicar la TPM**: sus coeficientes son significativos, la inercia es alta y se cumple el principio de Taylor. También permite construir escenarios de riesgo con interpretación económica.
 - **Como herramienta de pronóstico, el ARIMA es más preciso a 6 y 12 meses**; a 24 meses ningún modelo supera con claridad a la caminata aleatoria.
-- **Respuesta a la pregunta de investigación:** la lectura conjunta sugiere una TPM entre 3,9 % y 4,5 % en el escenario central de los próximos dos años, con el desanclaje de las expectativas de inflación como principal riesgo al alza y una recesión global como principal riesgo a la baja.
+- **Respuesta a la pregunta de investigación:** La lectura conjunta de los modelos sugiere una TPM relativamente estable durante los próximos dos años. A septiembre de 2028, la Regla de Taylor proyecta 4,36 % en el escenario base, mientras que ARIMA y la caminata aleatoria proyectan aproximadamente 4,50 %. Bajo convergencia de las expectativas y cierre de la brecha de actividad, Taylor proyecta 3,97 %. El principal riesgo al alza es un aumento de las expectativas de inflación, mientras que una recesión global representa un riesgo a la baja.
 
 ### Limitaciones
 
 - **Pocos cortes de evaluación:** son nueve cortes por horizonte, con períodos de pronóstico que se superponen. Hay poca evidencia independiente y no se aplicó un test formal de significancia de las diferencias (por ejemplo, Diebold-Mariano).
 - **Determinantes constantes:** mantener fijas las variables explicativas es una simplificación que perjudica a la regla en horizontes largos. Un modelo que incorpore pronósticos de inflación, actividad y tasas internacionales podría mejorar su desempeño.
-- **Información de la proyección final:** la proyección parte de la última fila del panel, que contiene la información conocida al cierre de agosto de 2026. Los datos de septiembre (por ejemplo, la EEE de 3,3 %) entran en el diagnóstico, pero no en el punto de partida de la regla.
+- **Información de la proyección final:** la Regla de Taylor utiliza `fila_pronostico()` para incorporar las variables disponibles al cierre de septiembre de 2026. Esto incluye la EEE de 3,3 % y la brecha de actividad de −1,76 %, calculada con información del Imacec hasta julio de 2026 debido al rezago de publicación. Se mantienen constantes los determinantes en el escenario base, lo que constituye una simplificación para horizontes largos.
 - **Datos revisados:** la brecha en tiempo real usa el Imacec en su versión actual, no la que se conocía en cada fecha; las revisiones posteriores del Imacec no se capturan.
 - **Período reciente acotado:** el período 2025–2026 cubre un solo ciclo de política monetaria (recortes graduales), con pocos meses de cambio.
 - **Estabilidad numérica:** el ARIMA(3,0,3) de la evaluación complementaria puede dar resultados levemente distintos según la versión de `statsmodels`; las cifras centrales no cambian.
