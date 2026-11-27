@@ -1,0 +1,17 @@
+muestra,plazo,variable,coeficiente,error_hac,p_valor,significativo_5%
+Entrenamiento (hasta 2024-12),corto,Constante,0.2491,0.0517,0.0,sí
+Entrenamiento (hasta 2024-12),corto,"TPM rezagada (ρ, inercia)",0.9079,0.0279,0.0,sí
+Entrenamiento (hasta 2024-12),corto,Brecha de inflación esperada,0.3132,0.054,0.0,sí
+Entrenamiento (hasta 2024-12),corto,Brecha de actividad,0.0292,0.0155,0.0594,no
+Entrenamiento (hasta 2024-12),corto,Fed Funds,0.0314,0.0311,0.3128,no
+Entrenamiento (hasta 2024-12),largo,Brecha de inflación esperada,3.4018,0.5697,0.0,sí
+Entrenamiento (hasta 2024-12),largo,Brecha de actividad,0.3168,0.145,0.0289,sí
+Entrenamiento (hasta 2024-12),largo,Fed Funds,0.3411,0.2498,0.1721,no
+Muestra completa,corto,Constante,0.2444,0.0502,0.0,sí
+Muestra completa,corto,"TPM rezagada (ρ, inercia)",0.9102,0.0271,0.0,sí
+Muestra completa,corto,Brecha de inflación esperada,0.3079,0.0533,0.0,sí
+Muestra completa,corto,Brecha de actividad,0.0279,0.0145,0.0545,no
+Muestra completa,corto,Fed Funds,0.0273,0.0292,0.3499,no
+Muestra completa,largo,Brecha de inflación esperada,3.427,0.571,0.0,sí
+Muestra completa,largo,Brecha de actividad,0.3101,0.1354,0.022,sí
+Muestra completa,largo,Fed Funds,0.3037,0.2472,0.2192,no
