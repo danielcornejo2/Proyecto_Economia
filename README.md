@@ -329,23 +329,25 @@ El benchmark ingenuo es la **caminata aleatoria**: la TPM futura es igual a la �
 Los tres modelos se evalúan con el mismo diseño:
 
 - Nueve cortes, en septiembre de cada año entre 2016 y 2024.
-- En cada corte, cada modelo se estima solo con los datos hasta ese mes y pronostica a 6, 12 y 24 meses.
-- **Regla de Taylor:** las variables explicativas se mantienen en su valor del corte y la TPM proyectada alimenta el rezago del mes siguiente.
-- **ARIMA:** para no usar información futura, el orden se elige solo con datos hasta el primer corte (2016-09) y se mantiene fijo; en cada corte se reestiman los coeficientes. El orden resultante es **ARIMA(2,1,2)**, distinto del ARIMA(2,1,0) de la proyección final, que se elige con más historia.
+- En cada corte, los modelos se estiman únicamente con información disponible hasta ese período.
+- **Regla de Taylor:** se utiliza la TPM observada en el corte y las variables explicativas disponibles para pronosticar el mes siguiente, respetando los rezagos de publicación. Estas se mantienen constantes durante cada horizonte y la TPM proyectada alimenta el rezago del mes siguiente.
+- **ARIMA:** el orden se selecciona con datos hasta septiembre de 2016 y se mantiene fijo durante la evaluación, reestimando sus coeficientes en cada corte. El orden seleccionado es **ARIMA(2,1,2)**, distinto del ARIMA(2,1,0) empleado en la proyección final.
 
-RMSE; entre paréntesis, el R² fuera de muestra frente a la caminata aleatoria:
+RMSE en puntos porcentuales de TPM. Entre paréntesis se presenta el R² fuera de muestra respecto de la caminata aleatoria:
 
 | Horizonte | Caminata aleatoria | Regla de Taylor | ARIMA(2,1,2) |
 |---|---:|---:|---:|
-| 6 meses | 2,04 | 1,83 (+0,19) | **1,43 (+0,51)** |
-| 12 meses | 3,47 | 3,59 (−0,07) | **2,97 (+0,27)** |
-| 24 meses | 5,01 | 6,65 (−0,76) | 4,97 (+0,02) |
+| 6 meses | 2,04 | 1,48 (+0,47) | **1,43 (+0,51)** |
+| 12 meses | 3,47 | **2,95 (+0,28)** | 2,97 (+0,27) |
+| 24 meses | 5,01 | 5,74 (−0,31) | **4,97 (+0,02)** |
 
-- **El ARIMA es el más preciso a 6 y 12 meses** y le gana al benchmark en ambos horizontes.
-- **La regla de Taylor solo mejora al benchmark a 6 meses.** A 12 y 24 meses pierde, porque sus determinantes se mantienen fijos en el valor del corte y no recogen los cambios posteriores en inflación y actividad (por ejemplo, el shock de 2021–2022).
-- **A 24 meses ningún modelo supera con claridad a la caminata aleatoria.**
+- **A 6 meses:** ARIMA presenta el menor RMSE, aunque la Regla de Taylor también supera a la caminata aleatoria.
+- **A 12 meses:** la Regla de Taylor obtiene el menor RMSE, superando ligeramente a ARIMA. Ambos modelos mejoran al benchmark.
+- **A 24 meses:** Taylor presenta un error mayor que la caminata aleatoria. ARIMA obtiene el menor RMSE, pero su ventaja frente al benchmark es muy pequeña.
 
-**Archivos generados:** `modelos/proyeccion_escenarios.py` genera `salidas/resultados/proyeccion_escenarios.csv`, `salidas/graficos/proyeccion_escenarios.png` y las tablas `proyecciones_tpm` y `metricas_modelos` en SQLite. Por separado, `modelos/proyeccion_taylor.py` genera `salidas/resultados/proyeccion_taylor_24m.csv`, mientras que `modelos/grafico_proyeccion_taylor.py` genera el gráfico `salidas/graficos/proyeccion_tpm_24m.png`.
+**Interpretación:** la corrección de los rezagos temporales permite evaluar Taylor utilizando las variables disponibles en cada origen de pronóstico. Los resultados muestran un desempeño competitivo a 6 y 12 meses, mientras que a 24 meses las proyecciones pierden precisión, especialmente al mantener constantes los determinantes macroeconómicos.
+
+Las evaluaciones utilizan nueve cortes históricos por horizonte, por lo que sus resultados deben interpretarse considerando el tamaño limitado y la superposición de las ventanas de evaluación.
 
 ### Evaluaciones complementarias
 
@@ -424,7 +426,7 @@ Los resultados de Taylor fueron recalculados utilizando la información disponib
 
 La diferencia respecto de las proyecciones anteriores se explica por la actualización del conjunto de información utilizado para iniciar el pronóstico. No corresponde atribuirla únicamente al cambio en la expectativa de inflación.
 
-Archivos: `salidas/resultados/proyeccion_escenarios.csv`, `salidas/graficos/proyeccion_escenarios.png` y la tabla `proyecciones_tpm` de la base. La proyección de la regla en el escenario base también se genera por separado con `modelos/proyeccion_taylor.py` (`proyeccion_taylor_24m.csv` y `proyeccion_tpm_24m.png`).
+Archivos generados: modelos/proyeccion_escenarios.py genera salidas/resultados/proyeccion_escenarios.csv, salidas/graficos/proyeccion_escenarios.png y las tablas proyecciones_tpm y metricas_modelos en SQLite. Por separado, modelos/proyeccion_taylor.py genera salidas/resultados/proyeccion_taylor_24m.csv, mientras que modelos/grafico_proyeccion_taylor.py genera el gráfico salidas/graficos/proyeccion_tpm_24m.png.
 
 Estas trayectorias son proyecciones condicionadas de los modelos, no decisiones anunciadas por el Banco Central.
 
@@ -435,7 +437,7 @@ Estas trayectorias son proyecciones condicionadas de los modelos, no decisiones 
 ### Conclusiones
 
 - La **regla de Taylor es útil para explicar la TPM**: sus coeficientes son significativos, la inercia es alta y se cumple el principio de Taylor. También permite construir escenarios de riesgo con interpretación económica.
-- **Como herramienta de pronóstico, el ARIMA es más preciso a 6 y 12 meses**; a 24 meses ningún modelo supera con claridad a la caminata aleatoria.
+- **Como herramienta de pronóstico**, ARIMA presenta el menor error a 6 meses, mientras que la Regla de Taylor obtiene el mejor resultado a 12 meses. A 24 meses, ARIMA supera apenas a la caminata aleatoria y Taylor presenta un error mayor, por lo que ninguno muestra una ventaja predictiva importante en ese horizonte.
 - **Respuesta a la pregunta de investigación:** La lectura conjunta de los modelos sugiere una TPM relativamente estable durante los próximos dos años. A septiembre de 2028, la Regla de Taylor proyecta 4,36 % en el escenario base, mientras que ARIMA y la caminata aleatoria proyectan aproximadamente 4,50 %. Bajo convergencia de las expectativas y cierre de la brecha de actividad, Taylor proyecta 3,97 %. El principal riesgo al alza es un aumento de las expectativas de inflación, mientras que una recesión global representa un riesgo a la baja.
 
 ### Limitaciones
