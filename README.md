@@ -371,6 +371,8 @@ A un mes gana la caminata aleatoria; el ARIMA gana a 6 y 12 meses.
 
 A un mes la TPM casi no cambia, así que es muy difícil superar la regla de "la tasa se mantiene". El gráfico `salidas/graficos/comparacion_tpm.png` muestra que ambos modelos siguen la trayectoria de la TPM, con mayores diferencias para la regla en algunos meses.
 
+**Archivos de resultados:** al ejecutar `python -m modelos.evaluacion_taylor`, se generan automáticamente `salidas/resultados/evaluacion_taylor_metricas.csv`, con los valores MAE y RMSE de Taylor y la caminata aleatoria, y `salidas/resultados/evaluacion_taylor_detalle.csv`, con la TPM observada y los pronósticos mensuales de ambos modelos para los 21 meses evaluados.
+
 **Regla de Taylor, validación temporal** (`modelos/validacion_temporal.py`): se reestima la regla con cuatro cortes (diciembre de 2021, 2022, 2023 y 2024) y se evalúan los pronósticos a un mes de los 12 meses siguientes a cada corte.
 
 | Corte | MAE Taylor | RMSE Taylor | MAE ingenuo | RMSE ingenuo |
