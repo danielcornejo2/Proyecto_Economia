@@ -12,16 +12,12 @@ de Chile y FRED, organizados en una base SQLite.
 
 ## 2. Base de datos
 
-Los resultados fueron calculados utilizando una copia
-de la base original del Hito 2, con fecha de corte
-en septiembre de 2026.
+Los resultados se calculan con la base data/base.db,
+con fecha de corte el 30 de septiembre de 2026.
 
-Para ejecutar los programas, la base debe encontrarse en:
-
-data/base.db
-
-La base utilizada para las pruebas se conserva localmente.
-Este archivo no forma parte de los commits de esta rama.
+La base no se sube al repositorio: se crea con
+python carga.py (o con python ejecutar_todo.py,
+que además corre todos los modelos en orden).
 
 ## 3. Preparación del entorno
 
@@ -39,9 +35,9 @@ Los programas utilizan el panel mensual generado por:
 
 modelos/datos_modelo.py
 
-Este archivo corresponde al trabajo desarrollado en la
-rama feat/datos-modelo y deberá integrarse con el resto
-del proyecto antes de la entrega definitiva.
+Este archivo aplica los rezagos de publicación y calcula
+la brecha de actividad en tiempo real (filtro HP de una
+cola), para que los modelos no usen datos futuros.
 
 ## 5. Ejecución de los modelos
 
@@ -104,9 +100,11 @@ Los resultados corresponden a un escenario condicionado
 y deben interpretarse junto con sus supuestos y
 limitaciones metodológicas.
 
-## 7. Pendientes de integración
+## 7. Integración (completada)
 
-- Incorporar oficialmente el panel mensual de Catari.
-- Garantizar la disponibilidad o reconstrucción de la base.
-- Comprobar la ejecución desde una instalación nueva.
-- Integrar los resultados con los demás modelos del Hito 3.
+- El panel mensual (modelos/datos_modelo.py) está integrado.
+- La base se reconstruye con python carga.py.
+- Se comprobó la ejecución desde un clon limpio del
+  repositorio con python ejecutar_todo.py.
+- Los resultados se comparan con el ARIMA y la caminata
+  aleatoria en modelos/comparacion_modelos.py.

@@ -213,7 +213,7 @@ del Banco Central de Chile.
 
 | Serie | Código API | Unidad | Frecuencia original |
 |---|---|---|---|
-| TPM | F022.TPM.TIN.D001.NO.Z.M | % anual | Mensual |
+| TPM | F022.TPM.TIN.D001.NO.Z.D | % anual | Diaria (se usa el valor de fin de mes; la serie mensual .M dejó de responder en la API) |
 | IPC | F074.IPC.VAR.Z.Z.C.M | % variación mensual | Mensual |
 | IPC SAE | F074.IPCSAE.VAR.Z.EP23.Z.M | % variación mensual | Mensual |
 | Imacec | F032.IMC.IND.Z.Z.EP18.Z.Z.0.M | Índice 2018=100 | Mensual |
