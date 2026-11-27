@@ -4,3 +4,5 @@ python-dotenv
 matplotlib
 ipykernel
 numpy
+statsmodels
+scipy

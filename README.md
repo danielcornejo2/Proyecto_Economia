@@ -12,33 +12,42 @@
 
 ## Contenido
 
-1. [Resumen del avance (Hito 2)](#resumen-del-avance-hito-2)
+1. [Estado del proyecto](#estado-del-proyecto)
 2. [Contexto y pregunta de proyección](#contexto-y-pregunta-de-proyección)
 3. [Arquitectura del flujo de trabajo](#arquitectura-del-flujo-de-trabajo)
 4. [Datos](#datos)
 5. [Base de datos](#base-de-datos)
 6. [Consultas SQL](#consultas-sql)
-7. [Análisis de coyuntura inicial](#análisis-de-coyuntura-inicial)
-8. [Cómo reproducir el proyecto](#cómo-reproducir-el-proyecto)
-9. [Estructura del repositorio](#estructura-del-repositorio)
-10. [Trabajo en equipo con Git](#trabajo-en-equipo-con-git)
-11. [Hitos del proyecto](#hitos-del-proyecto)
-12. [Metodología prevista para la proyección](#metodología-prevista-para-la-proyección)
-13. [Referencias](#referencias)
+7. [Análisis de coyuntura](#análisis-de-coyuntura)
+8. [Modelos y resultados (Hito 3)](#modelos-y-resultados-hito-3)
+9. [Dashboard](#dashboard)
+10. [Cómo reproducir el proyecto](#cómo-reproducir-el-proyecto)
+11. [Estructura del repositorio](#estructura-del-repositorio)
+12. [Trabajo en equipo con Git](#trabajo-en-equipo-con-git)
+13. [Hitos del proyecto](#hitos-del-proyecto)
+14. [Referencias](#referencias)
 
 ---
 
-## Resumen del avance.
+## Estado del proyecto
 
-| Requisito de la pauta | Dónde está | Estado |
+| Requisito | Dónde está | Estado |
 |---|---|---|
-| Extracción programática de 12 o más series reales, con un solo comando | `carga.py` (usa `extraccion/E_BCCH.py` y `extraccion/E_FRED.py`) | 13 series del BCCh y FRED |
+| Extracción programática de 12 o más series reales, con un solo comando | `carga.py` (usa `extraccion/E_BCCH.py` y `extraccion/E_FRED.py`) | ✓ 13 series del BCCh y FRED |
 | Credenciales fuera del código | `.env` local, creado desde `.env.example` (no se sube) | ✓ |
 | Base relacional con 3 o más tablas, llaves primarias y foráneas | `bd/crear_base.py` → `data/base.db` (`temas`, `series`, `observaciones`) | ✓ |
 | Consultas SQL comentadas con JOIN, GROUP BY y función de ventana | `sql/consultas.sql` | ✓ |
-| README, `requirements.txt` y entrega con tag | Este archivo, `requirements.txt` y tag `hito-2` | ✓ |
+| Correlaciones y rezagos entre la TPM y sus determinantes | `modelos/correlaciones_tpm.py` | ✓ |
+| Modelos: ARIMA y regla de Taylor (inercia y Fed Funds), con significancia | `modelos/arima_tpm.py`, `modelos/regla_taylor.py`, `modelos/significancia_taylor.py` | ✓ |
+| Evaluación fuera de muestra contra un benchmark ingenuo, sin sesgo de anticipación | `modelos/datos_modelo.py`, `modelos/evaluacion_arima.py`, `modelos/evaluacion_taylor.py`, `modelos/comparacion_modelos.py` | ✓ |
+| Proyección a 6–24 meses con escenarios de riesgo, guardada en la base | `modelos/proyeccion_escenarios.py` → tablas `proyecciones_tpm` y `metricas_modelos` | ✓ |
+| Todo el análisis con un solo comando | `ejecutar_todo.py` | ✓ |
+| Dashboard en Python generado desde la base | `dashboard/dashboard_tpm.py` → `hito_3/dashboard/` (3 láminas) | ✓ Se regenera con `ejecutar_todo.py` |
+| Versión exploratoria del dashboard en Power BI (Hito 2) | `dashboard/monitor_tpm.pbix` | Complementaria; ver [Dashboard](#dashboard) |
+| Informe final y presentación | — | En desarrollo |
+| Entrega con tag | Tag `hito-2` (Hito 2); tag `hito-3` al cierre | Hito 3 pendiente |
 
-**Fecha de corte de los datos:** `2026-09-30`. Todos los resultados de este README corresponden a esa fecha.
+**Fecha de corte de los datos:** `2026-09-30`. Todos los resultados de este README corresponden a esa fecha y se reproducen con `python ejecutar_todo.py`.
 
 ---
 
@@ -46,7 +55,7 @@
 
 La Tasa de Política Monetaria (TPM) es el principal instrumento del Banco Central de Chile (BCCh) para cumplir su meta de inflación de 3 %. Sus cambios se transmiten a las tasas de mercado, al tipo de cambio, a la demanda y a las expectativas, y con ello a la actividad y a la inflación (Banco Central de Chile, 2020). En los últimos años la TPM llegó a un máximo de 11,25 % (2022–2023) y luego bajó a 4,5 %.
 
-**Variable objetivo:** TPM, promedio mensual (% anual), serie `F022.TPM.TIN.D001.NO.Z.M` del BCCh.
+**Variable objetivo:** TPM (% anual), valor de fin de mes, desde agosto de 2001. Se descarga la serie diaria `F022.TPM.TIN.D001.NO.Z.D` del BCCh: la serie mensual (`…Z.M`) dejó de responder en la API. Se usa el valor de fin de mes, y no el promedio, porque la TPM cambia en fechas puntuales (las reuniones de política monetaria) y el promedio de un mes con cambio daría una tasa que nunca estuvo vigente. Antes de agosto de 2001 la TPM estaba expresada en UF (tasa real) y no es comparable con la actual.
 
 **Horizonte:** 6 a 24 meses.
 
@@ -61,10 +70,11 @@ La Tasa de Política Monetaria (TPM) es el principal instrumento del Banco Centr
 Todo el flujo es programático: no hay descargas manuales ni pasos intermedios a mano.
 
 ```
-APIs (BCCh + FRED) ──▶ CSV en data/raw/ ──▶ SQLite data/base.db ──▶ sql/consultas.sql ──▶ notebooks/ (Python) ──▶ Power BI
-   extraccion/*.py                           bd/crear_base.py         JOIN · GROUP BY ·                            (Hito 3)
-                                                                       función de ventana
-└──────────────────── carga.py ejecuta las tres primeras etapas con un solo comando ────────────────────┘
+APIs (BCCh + FRED) ──▶ CSV en data/raw/ ──▶ SQLite data/base.db ──▶ sql/consultas.sql ──▶ modelos/ y notebooks/ ──▶ hito_3/resultados y graficos
+   extraccion/*.py                           bd/crear_base.py         JOIN · GROUP BY ·      (Python)                 + tablas proyecciones_tpm y
+                                                                       función de ventana                              metricas_modelos en la base
+└──────── carga.py: descarga y crea la base ────────┘
+└──────────────────────────────── ejecutar_todo.py: corre todo el flujo con un solo comando ────────────────────────────────┘
 ```
 
 ---
@@ -77,16 +87,16 @@ Se usan **13 series**, todas descargadas por API: 9 desde la Base de Datos Estad
 
 | # | Nombre | Serie | Código API | Fuente | Frec. original | Tema | Período | Meses con dato |
 |---|---|---|---|---|---|---|---|---|
-| 1 | `tpm` | Tasa de política monetaria | `F022.TPM.TIN.D001.NO.Z.M` | BCCh | Mensual | Política monetaria | 2000-01 a 2026-09 | 321 |
+| 1 | `tpm` | Tasa de política monetaria, valor de fin de mes | `F022.TPM.TIN.D001.NO.Z.D` | BCCh | Diaria | Política monetaria | 2001-08 a 2026-09 | 302 |
 | 2 | `ipc` | IPC general, variación mensual | `F074.IPC.VAR.Z.Z.C.M` | BCCh | Mensual | Precios | 2000-01 a 2026-09 | 321 |
 | 3 | `ipc_sae` | IPC sin alimentos ni energía, variación mensual empalmada (INE, base 2023) | `F074.IPCSAE.VAR.Z.EP23.Z.M` | BCCh | Mensual | Precios | 2010-01 a 2026-09 | 201 |
 | 4 | `expectativa_ipc_eee` | Expectativa de inflación a 12 meses (EEE), mediana | `F089.IPC.V12.14.M` | BCCh | Mensual | Expectativas | 2001-01 a 2026-09 | 302 |
-| 5 | `imacec` | Imacec, índice original (referencia 2018) | `F032.IMC.IND.Z.Z.EP18.Z.Z.0.M` | BCCh | Mensual | Actividad | 2000-01 a 2026-08 | 320 |
-| 6 | `desempleo` | Tasa de desocupación nacional (INE) | `F049.DES.TAS.INE9.10.M` | BCCh | Mensual | Mercado laboral | 2010-03 a 2026-08 | 198 |
+| 5 | `imacec` | Imacec, índice original (referencia 2018) | `F032.IMC.IND.Z.Z.EP18.Z.Z.0.M` | BCCh | Mensual | Actividad | 2000-01 a 2026-09 | 321 |
+| 6 | `desempleo` | Tasa de desocupación nacional (INE) | `F049.DES.TAS.INE9.10.M` | BCCh | Mensual | Mercado laboral | 2010-03 a 2026-09 | 199 |
 | 7 | `dolar_observado` | Dólar observado, promedio mensual | `F073.TCO.PRE.HIST.M` | BCCh | Mensual | Tipo de cambio | 2000-01 a 2026-09 | 321 |
 | 8 | `tasa_bcp_10` | Tasa de bonos en pesos a 10 años, mercado secundario | `F022.BCLP.TIS.AN10.NO.Z.D` | BCCh | Diaria | Tasas de mercado | 2004-07 a 2026-09 | 267 |
 | 9 | `tasa_bcu_10` | Tasa de bonos en UF a 10 años, mercado secundario | `F022.BUF.TIS.AN10.UF.Z.D` | BCCh | Diaria | Tasas de mercado | 2002-09 a 2026-09 | 289 |
-| 10 | `precio_cobre` | Precio internacional del cobre (FMI) | `PCOPPUSDM` | FRED | Mensual | Externo | 2000-01 a 2026-07 | 319 |
+| 10 | `precio_cobre` | Precio internacional del cobre (FMI) | `PCOPPUSDM` | FRED | Mensual | Externo | 2000-01 a 2026-09 | 321 |
 | 11 | `fed_funds` | Tasa de fondos federales de EE.UU. | `FEDFUNDS` | FRED | Mensual | Externo | 2000-01 a 2026-09 | 321 |
 | 12 | `ipc_eeuu` | IPC de EE.UU. (CPI-U), desestacionalizado | `CPIAUCSL` | FRED | Mensual | Externo | 2000-01 a 2026-09 | 320 |
 | 13 | `produccion_industrial_eeuu` | Producción industrial de EE.UU., desestacionalizada | `INDPRO` | FRED | Mensual | Externo | 2000-01 a 2026-09 | 321 |
@@ -112,9 +122,9 @@ Se usan **13 series**, todas descargadas por API: 9 desde la Base de Datos Estad
 
 - **Fecha de corte:** `2026-09-30`, definida en `carga.py` (`FECHA_CORTE`) y modificable con `--hasta`. Se descartan los datos posteriores, para que el resultado sea reproducible.
 - **Inicio:** se pide desde `2000-01-01`; cada serie parte en su primer dato disponible.
-- **Frecuencia:** todo se guarda mensual, con fecha el día 1 del mes. Las series diarias (tasas de bonos) se convierten a promedio mensual en Python, con la función `a_mensual` de los scripts de extracción, antes de cargarse a la base.
+- **Frecuencia:** todo se guarda mensual, con fecha el día 1 del mes. Las series diarias se convierten a mensual en Python, con la función `a_mensual` de los scripts de extracción, antes de cargarse a la base: las tasas de bonos como promedio del mes y la TPM como valor de fin de mes.
 - **Datos faltantes:** los meses sin dato se guardan como `NULL`; no se rellenan ni se eliminan. A la fecha de corte hay 8: 7 de la EEE y 1 del IPC de EE.UU.
-- **Rezagos de publicación:** el Imacec y la desocupación llegan a 2026-08 y el cobre a 2026-07.
+- **Rezagos de publicación:** con la descarga más reciente todas las series llegan a 2026-09. En los modelos, cada serie entra rezagada según cuándo se publica (ver [Modelos y resultados](#modelos-y-resultados-hito-3)).
 - **Historia:** todas las series tienen al menos 10 años de datos mensuales. Las más cortas son el IPC SAE (empalmado por el INE, desde 2010-01) y la desocupación (desde 2010-03).
 - **Errores:** cada descarga se reintenta hasta 3 veces. Si una serie falla, se informa como `[ERROR]` y **la base no se crea**, para no mezclar datos nuevos con CSV de una descarga anterior. Sin conexión, el proceso se detiene. En FRED, una API key inválida detiene la descarga y el error 429 (exceso de consultas) hace esperar antes de reintentar.
 - **Credenciales:** se leen desde `.env` y se reemplazan por `***` en cualquier mensaje de error.
@@ -133,9 +143,11 @@ Base SQLite `data/base.db`, creada por `bd/crear_base.py`:
 |---|---|---|
 | `temas` | Clasificación temática (8 temas) | PK `id_tema` |
 | `series` | Catálogo: nombre, código API, fuente, frecuencia original, tipo (`tasa`, `indice`, `nivel`, `variacion`), unidad, descripción y tema (13 series) | PK `id_serie`; FK `id_tema` → `temas`; único (`fuente`, `codigo`) |
-| `observaciones` | Una fila por serie y mes (3.829 filas) | PK (`id_serie`, `fecha`); FK `id_serie` → `series` |
+| `observaciones` | Una fila por serie y mes (3.814 filas) | PK (`id_serie`, `fecha`); FK `id_serie` → `series` |
+| `proyecciones_tpm` | Proyección de la TPM a 24 meses por modelo y escenario, con el intervalo del ARIMA (144 filas). La crea `modelos/proyeccion_escenarios.py` | PK (`fecha_corte`, `mes`, `modelo`, `escenario`) |
+| `metricas_modelos` | MAE, RMSE y R² fuera de muestra de cada modelo y horizonte (18 filas). La crea `modelos/proyeccion_escenarios.py` | PK (`evaluacion`, `horizonte`, `modelo`) |
 
-La vista `v_observaciones` une las tres tablas (tema, serie, frecuencia, fecha y valor).
+La vista `v_observaciones` une las tres tablas de datos (tema, serie, frecuencia, fecha y valor). Las tablas `proyecciones_tpm` y `metricas_modelos` guardan los resultados de los modelos, para que el dashboard y el informe los lean desde la base y no desde archivos sueltos.
 
 **Controles de calidad de la carga:**
 
@@ -169,11 +181,11 @@ Archivo `sql/consultas.sql`, con tres consultas comentadas. El notebook las lee 
 python -c "import sqlite3; con = sqlite3.connect('data/base.db'); [print(f'Consulta {i}:', len(con.execute(q).fetchall()), 'filas') for i, q in enumerate(open('sql/consultas.sql', encoding='utf-8').read().split(';'), 1) if q.strip()]"
 ```
 
-Con la fecha de corte 2026-09-30, cada consulta entrega 3.829 filas.
+Con la fecha de corte 2026-09-30, cada consulta entrega 3.814 filas.
 
 ---
 
-## Análisis de coyuntura inicial
+## Análisis de coyuntura
 
 El notebook `notebooks/02_analisis_coyuntura.ipynb` lee las consultas, aplica las transformaciones y construye cinco gráficos, cada uno con título, unidad, fuente, período y una lectura económica:
 
@@ -202,13 +214,155 @@ El notebook `notebooks/02_analisis_coyuntura.ipynb` lee las consultas, aplica la
 
 ---
 
+## Modelos y resultados (Hito 3)
+
+Todos los scripts están en `modelos/` y se ejecutan en orden con `python ejecutar_todo.py`. Las tablas quedan en `hito_3/resultados/` y los gráficos en `hito_3/graficos/`. El detalle y la discusión están en `hito_3/resultados_taylor.md` y `hito_3/analisis_proyecciones.md`.
+
+### Datos para los modelos, sin sesgo de anticipación
+
+`modelos/datos_modelo.py` arma el panel mensual con el que se estiman y evalúan todos los modelos. Cada fila del mes *t* contiene solo información disponible al cierre del mes *t−1*:
+
+- **Rezagos de publicación:**
+  - TPM, EEE, Fed Funds y dólar: 1 mes.
+  - IPC, IPC SAE, desempleo y cobre: 2 meses.
+  - Imacec: 3 meses.
+- **Brecha de actividad en tiempo real:** el filtro HP se recalcula cada mes usando solo el Imacec conocido hasta ese momento (filtro "de una cola"). La brecha calculada con toda la muestra usa datos futuros y se usa solo para describir el pasado. La correlación entre ambas es 0,71.
+- **Lo que ya calcula SQL se lee de la base:** los promedios mensuales y las variaciones en 12 meses vienen de `sql/consultas.sql` y no se recalculan en Python.
+
+### Relaciones entre la TPM y sus determinantes
+
+`modelos/correlaciones_tpm.py` correlaciona el cambio en 12 meses de la TPM con cada determinante, rezagado de 0 a 24 meses. Se usan cambios y no niveles, para evitar correlaciones espurias entre series con tendencia.
+
+| Variable | Rezago de mayor correlación | Correlación | Lectura |
+|---|---|---|---|
+| Expectativa de inflación (EEE) − meta | 1 mes | 0,71 | La relación más fuerte: el BCCh reacciona a la inflación esperada |
+| Inflación IPC / SAE (12m) | 0 meses | 0,66 / 0,55 | Se mueven junto con la TPM |
+| Imacec (var. 12m) | 9 meses | 0,53 | La actividad se adelanta a la TPM |
+| Cobre (var. 12m) | 12 meses | 0,50 | Mejores términos de intercambio anticipan alzas |
+| Fed Funds (cambio 12m) | 0 meses | 0,39 | Ciclo global común |
+| Desempleo (cambio 12m) | 24 meses | +0,69 (−0,34 en el mismo mes) | El efecto contemporáneo tiene el signo esperado; el de 24 meses refleja el ciclo económico |
+| Dólar (var. 12m) | 9 meses | −0,33 | Signo contrario al esperado: el dólar sube en crisis globales, cuando el BCCh baja la tasa |
+
+Correlación no implica causalidad: la tabla muestra qué se mueve junto y en qué orden.
+
+### Modelos
+
+- **ARIMA** (`modelos/arima_tpm.py`):
+  - La TPM no muestra estacionalidad (autocorrelación de 0,01 en el rezago 12), por eso se usa ARIMA y no SARIMA.
+  - El orden se elige por AIC con datos hasta 2024-12: **ARIMA(2,1,0)**, con coeficientes de 0,37 y 0,30. Captura el "momentum" de los ciclos de política monetaria.
+  - Los residuos no tienen autocorrelación (Ljung-Box, p = 0,97).
+  - El test ADF no rechaza estacionariedad en nivel, pero la evaluación fuera de muestra respalda modelar en diferencias: el ARIMA con d = 0 es el peor en todos los horizontes.
+- **Regla de Taylor** (`modelos/regla_taylor.py` y `modelos/significancia_taylor.py`): MCO con errores robustos HAC (Newey-West, 12 rezagos), entrenamiento 2005-03 a 2024-12.
+
+```
+TPM_t = c + ρ·TPM_t−1 + β_π·(EEE_t − 3) + β_y·brecha_t + β_f·FedFunds_t
+```
+
+| Variable | Coeficiente | p-valor | Respuesta de largo plazo β/(1−ρ) | p-valor |
+|---|---:|---:|---:|---:|
+| TPM rezagada (ρ, inercia) | 0,908 | 0,000 | | |
+| Brecha de inflación esperada | 0,313 | 0,000 | 3,40 | 0,000 |
+| Brecha de actividad | 0,029 | 0,059 | 0,32 | 0,029 |
+| Fed Funds | 0,031 | 0,313 | 0,34 | 0,172 |
+
+R² = 0,984. Lectura de los resultados:
+
+- La **inercia** es alta (0,91), en línea con Apablaza y Ortiz (2024).
+- La respuesta a la **inflación esperada** es mayor que 1, así que se cumple el principio de Taylor.
+- La **actividad** importa menos.
+- La **Fed Funds** no es significativa una vez que se controla por expectativas y actividad.
+- Frente a Caputo y Herrera (2013) (1,174; 0,656; 1,2), los signos coinciden, pero la respuesta a la inflación es mayor y a la Fed menor.
+
+### Evaluación fuera de muestra
+
+`modelos/comparacion_modelos.py` compara los tres modelos con el mismo diseño:
+
+- Nueve cortes, en septiembre de cada año entre 2016 y 2024.
+- En cada corte, cada modelo se estima solo con los datos hasta ese mes y pronostica a 6, 12 y 24 meses.
+- El benchmark es la caminata aleatoria (la TPM se mantiene en su último valor).
+
+RMSE en puntos porcentuales de TPM; entre paréntesis, el R² fuera de muestra frente a la caminata aleatoria (positivo = le gana):
+
+| Horizonte | Caminata aleatoria | Regla de Taylor | ARIMA |
+|---|---:|---:|---:|
+| 6 meses | 2,04 | 1,83 (+0,19) | **1,43 (+0,51)** |
+| 12 meses | 3,47 | 3,59 (−0,07) | **2,97 (+0,27)** |
+| 24 meses | 5,01 | 6,65 (−0,76) | 4,97 (+0,02) |
+
+- **El ARIMA es el más preciso a 6 y 12 meses.**
+- **La regla de Taylor solo mejora al benchmark a 6 meses.** A 12 y 24 meses pierde, porque sus determinantes se mantienen fijos en el valor del corte.
+- **A 24 meses ningún modelo supera con claridad a la caminata aleatoria.**
+
+Evaluaciones complementarias:
+
+- `modelos/evaluacion_arima.py` (enero de 2025 a septiembre de 2026, 21 meses): a 1 mes gana la caminata aleatoria (RMSE 0,077 vs 0,089); el ARIMA gana a 6 meses (R² +0,12) y a 12 meses (+0,56).
+- `modelos/validacion_temporal.py`: la regla de Taylor supera al benchmark en los cortes de 2021 a 2023, períodos de grandes movimientos de la TPM.
+
+### Proyección a 24 meses y escenarios de riesgo
+
+`modelos/proyeccion_escenarios.py` proyecta desde septiembre de 2026 (TPM 4,50 %):
+
+| Modelo / escenario | Mar-2027 | Sep-2027 | Sep-2028 |
+|---|---:|---:|---:|
+| Regla de Taylor: base (determinantes constantes) | 4,21 % | 4,05 % | 3,90 % |
+| Regla de Taylor: convergencia (expectativas a la meta, brecha cerrada) | 4,21 % | 4,04 % | 3,89 % |
+| Regla de Taylor: riesgo al alza (expectativas +1 pp, Fed +0,5 pp) | 5,75 % | 6,47 % | 7,10 % |
+| Regla de Taylor: riesgo a la baja (brecha −2 pp, expectativas −0,5 pp, Fed −1 pp) | 3,07 % | 2,26 % | 1,54 % |
+| ARIMA(2,1,0) | 4,50 % | 4,50 % | 4,50 % |
+| Intervalo de 80 % del ARIMA (piso de 0,5 %, mínimo histórico) | 2,64–6,36 % | 1,23–7,77 % | 0,50–9,72 % |
+
+Los tamaños de los shocks son ilustrativos. **Conclusión:** el escenario central apunta a una TPM entre 3,9 % y 4,5 % en los próximos dos años, con recortes graduales según la regla de Taylor. El principal riesgo al alza es un desanclaje de las expectativas de inflación. Son proyecciones condicionadas de los modelos, no anuncios del Banco Central.
+
+---
+
+## Dashboard
+
+El dashboard oficial del proyecto se genera en Python con `dashboard/dashboard_tpm.py`. El script lee solo desde `data/base.db` (las series, las consultas de `sql/consultas.sql` y las tablas `proyecciones_tpm` y `metricas_modelos`) y escribe tres láminas en `hito_3/dashboard/`, que se usan en la presentación y en el informe. Es el último paso de `ejecutar_todo.py`, así que se actualiza solo cada vez que cambian los datos o los modelos.
+
+```bash
+python -m dashboard.dashboard_tpm
+```
+
+### Lámina 1: Coyuntura
+
+Indicadores clave con su último dato (TPM, inflación IPC, expectativa EEE, brecha de actividad y dólar) y la evolución desde 2015 de la TPM y sus determinantes. El punto marca el último dato de cada serie.
+
+![Coyuntura](hito_3/dashboard/1_coyuntura.png)
+
+### Lámina 2: Semáforo de los determinantes
+
+Cada determinante se clasifica como **En rango**, **Atención** o **Alerta** según reglas explícitas, definidas en `REGLAS_SEMAFORO` dentro del script. Por ejemplo, la inflación está en rango entre 2 % y 4 % (el rango de tolerancia del Banco Central) y en atención entre 1 % y 5 %. Cada estado lleva ícono y texto, no solo color. La tabla también se guarda en `hito_3/dashboard/semaforo.csv`.
+
+A septiembre de 2026, la inflación IPC (4,17 %) y la expectativa EEE (3,30 %) están en atención, y el desempleo, que subió 1,27 pp en 12 meses, está en alerta. Los demás determinantes están en rango.
+
+![Semáforo](hito_3/dashboard/2_semaforo.png)
+
+### Lámina 3: Proyección y desempeño de los modelos
+
+A la izquierda, la TPM efectiva y su proyección a 24 meses: ARIMA con su intervalo de 80 %, los cuatro escenarios de la regla de Taylor y la caminata aleatoria como benchmark. A la derecha, el error fuera de muestra (RMSE) de cada modelo a 6, 12 y 24 meses.
+
+![Proyección](hito_3/dashboard/3_proyeccion.png)
+
+### Versión exploratoria en Power BI
+
+En el Hito 2 se construyó una primera versión del monitor en Power BI (`dashboard/monitor_tpm.pbix`), siguiendo el plan original del curso. Se conserva en el repositorio como versión exploratoria. Para abrirla se necesita Power BI Desktop.
+
+Para la entrega final se pasó a un dashboard en Python por cuatro razones:
+
+1. **Requisito de la entrega final.** La guía del Hito 3 pide que el dashboard se genere con código a partir de la base SQL y que se pueda regenerar sin pasos manuales.
+2. **Reproducibilidad.** El dashboard en Python se rehace con `python ejecutar_todo.py` en cualquier computador con Python. El archivo de Power BI requiere el programa instalado y actualizar los datos a mano.
+3. **Conexión con los modelos.** El script lee directamente las proyecciones y las métricas que los modelos guardan en la base, de modo que las cifras del dashboard, del informe y de la presentación son siempre las mismas.
+4. **Control de versiones.** El `.pbix` es un archivo binario, así que Git no puede mostrar qué cambió entre versiones. El script es texto, y cada cambio queda registrado y se puede revisar en un pull request.
+
+---
+
 ## Cómo reproducir el proyecto
 
 ### Requisitos
 
 - **Python 3.9 o superior** (se desarrolló con Python 3.14). Verificar con `python3 --version` (Mac/Linux) o `python --version` (Windows).
 - **Git.**
-- **Visual Studio Code** con las extensiones de Python y Jupyter (VS Code las sugiere al abrir el proyecto).
+- **Visual Studio Code** con las extensiones de Python y Jupyter (VS Code las sugiere al abrir el proyecto). También funciona en **GitHub Codespaces** (botón *Code → Codespaces* en GitHub), sin instalar nada.
 - **Cuenta gratuita en la BDE del Banco Central:** <https://si3.bcentral.cl/estadisticas/Principal1/Web_Services/index.htm>
 - **API key gratuita de FRED:** <https://fred.stlouisfed.org/docs/api/api_key.html>
 
@@ -290,10 +444,31 @@ python extraccion/E_BCCH.py --buscar "BCU" --frecuencia DAILY    # series diaria
 python extraccion/E_FRED.py --buscar "copper"                    # FRED (en inglés)
 ```
 
-### 6. Ejecutar las consultas y el análisis
+### 6. Ejecutar todo el análisis (un solo comando)
+
+```bash
+python ejecutar_todo.py
+```
+
+Corre todo el proyecto en orden y se detiene indicando el paso si alguno falla:
+
+1. Descarga de datos y creación de la base (`carga.py`).
+2. Correlaciones.
+3. ARIMA y su evaluación.
+4. Regla de Taylor: estimación, significancia, evaluaciones y proyección.
+5. Comparación de modelos.
+6. Proyección con escenarios, que guarda las tablas `proyecciones_tpm` y `metricas_modelos` en la base.
+7. Dashboard: las tres láminas en `hito_3/dashboard/`.
+
+Termina con `[OK] Proyecto completo ejecutado` en un par de minutos.
+
+- Para usar la base ya creada, sin volver a descargar: `python ejecutar_todo.py --sin-descarga`.
+- Para correr un script por separado, se ejecuta como módulo desde la raíz del proyecto: `python -m modelos.comparacion_modelos`.
+
+### 7. Consultas SQL y notebook de coyuntura
 
 - Consultas SQL sin notebook: ver el comando de la sección [Consultas SQL](#consultas-sql).
-- Análisis: abrir `notebooks/02_analisis_coyuntura.ipynb` en VS Code, elegir el kernel `.venv` y ejecutar todas las celdas (*Run All*). El notebook lee `../data/base.db` y `../sql/consultas.sql`, por lo que debe ejecutarse desde la carpeta `notebooks/` (VS Code lo hace por defecto).
+- Análisis de coyuntura: abrir `notebooks/02_analisis_coyuntura.ipynb` en VS Code, elegir el kernel `.venv` y ejecutar todas las celdas (*Run All*). El notebook lee `../data/base.db` y `../sql/consultas.sql`, por lo que debe ejecutarse desde la carpeta `notebooks/` (VS Code lo hace por defecto).
 
 ### Problemas frecuentes
 
@@ -303,6 +478,8 @@ python extraccion/E_FRED.py --buscar "copper"                    # FRED (en ingl
 | `FRED_API_KEY ... no tiene el formato` | La key debe tener 32 caracteres (minúsculas y números), sin comillas ni espacios. |
 | `No hay conexión a internet con la API` | Revisar la red o desactivar la VPN. |
 | `[ERROR] Fallaron estas series` | La base no se creó. Volver a ejecutar `carga.py`; si persiste, revisar el código de esa serie con `--buscar`. |
+| `ModuleNotFoundError: No module named 'modelos'` | El script se ejecutó como archivo. Usar `python -m modelos.nombre_del_script` desde la raíz del proyecto, o `python ejecutar_todo.py`. |
+| `ModuleNotFoundError: No module named 'statsmodels'` | Falta instalar dependencias: `pip install -r requirements.txt`. |
 
 ---
 
@@ -310,7 +487,8 @@ python extraccion/E_FRED.py --buscar "copper"                    # FRED (en ingl
 
 ```
 Proyecto_Economia/
-├── carga.py                  # pipeline completo: descarga ambas fuentes con fecha de corte y crea la base
+├── carga.py                  # descarga ambas fuentes con fecha de corte y crea la base
+├── ejecutar_todo.py          # corre todo el proyecto: carga, correlaciones, modelos, evaluación y proyección
 ├── configurar_entorno.py     # crea .venv, instala dependencias y prepara .env
 ├── extraccion/
 │   ├── E_BCCH.py             # extracción del Banco Central de Chile -> data/raw/bcch/
@@ -320,7 +498,29 @@ Proyecto_Economia/
 ├── sql/
 │   └── consultas.sql         # consultas comentadas: JOIN, GROUP BY y función de ventana
 ├── notebooks/
-│   ├── 02_analisis_coyuntura.ipynb   # análisis de coyuntura inicial
+│   └── 02_analisis_coyuntura.ipynb   # análisis de coyuntura
+├── dashboard/
+│   ├── dashboard_tpm.py      # dashboard oficial en Python: lee la base y genera las láminas
+│   └── monitor_tpm.pbix      # versión exploratoria en Power BI (Hito 2)
+├── modelos/
+│   ├── datos_modelo.py           # panel para los modelos: rezagos de publicación y brecha HP en tiempo real
+│   ├── correlaciones_tpm.py      # correlaciones cruzadas y rezagos de la TPM
+│   ├── arima_tpm.py              # selección y diagnóstico del ARIMA
+│   ├── evaluacion_arima.py       # ARIMA vs caminata aleatoria, ene-2025 a sep-2026
+│   ├── regla_taylor.py           # estimación de la regla de Taylor
+│   ├── significancia_taylor.py   # errores HAC y respuestas de largo plazo
+│   ├── evaluacion_taylor.py      # regla de Taylor vs modelo ingenuo a un mes
+│   ├── validacion_temporal.py    # cortes 2021 a 2024
+│   ├── evaluacion_horizontes.py  # regla de Taylor a 6, 12 y 24 meses
+│   ├── comparacion_modelos.py    # tabla única: Taylor vs ARIMA vs caminata aleatoria
+│   ├── proyeccion_taylor.py      # proyección de la regla en el escenario base
+│   ├── proyeccion_escenarios.py  # proyección con escenarios + tablas en la base
+│   └── grafico_*.py              # gráficos de la regla de Taylor
+├── hito_3/
+│   ├── resultados/               # tablas de resultados (CSV)
+│   ├── graficos/                 # gráficos (PNG)
+│   ├── dashboard/                # láminas del dashboard (PNG) y semáforo (CSV)
+│   └── *.md                      # textos para el informe: introducción, datos, resultados y proyecciones
 ├── data/                     # se genera al ejecutar carga.py; NO se sube a GitHub
 │   ├── raw/bcch/, raw/fred/  #   un CSV por serie
 │   └── base.db               #   base de datos SQLite
@@ -365,6 +565,21 @@ git push origin hito-2
 
 Para comprobar que el tag está en GitHub: `git ls-remote --tags origin`.
 
+### Entrega del Hito 3
+
+El trabajo del Hito 3 se desarrolla en la rama `Hito-3`, con una rama y un pull request por tarea. Al cerrar la entrega:
+
+1. Hacer el autochequeo: clonar en una carpeta nueva y ejecutar `python ejecutar_todo.py`.
+2. Unir `Hito-3` a `main`.
+3. Crear el tag:
+
+```bash
+git checkout main
+git pull
+git tag hito-3
+git push origin hito-3
+```
+
 ---
 
 ## Hitos del proyecto
@@ -373,38 +588,8 @@ Para comprobar que el tag está en GitHub: `git ls-remote --tags origin`.
 |---|---|---|---|
 | Hito 1: Propuesta | Semana 4 | Variable objetivo, pregunta de proyección, series tentativas, mecanismos y repositorio | Entregado |
 | Hito 2: Avance de datos | Semana 8 | Extracción por API, base relacional poblada, consultas SQL y análisis de coyuntura inicial (tag `hito-2`) | Entregado |
-| Hito 3: Entrega final | Semana 13 | Informe final, repositorio reproducible y monitor Power BI (`.pbix`) | Pendiente |
-| Defensa | Semanas 14–15 | Presentación de 15 minutos apoyada en el monitor y preguntas | Pendiente |
-
----
-
-## Metodología prevista para la proyección
-
-Lo que sigue corresponde al Hito 3 y todavía no está implementado.
-
-### Regla de Taylor
-
-Se estimará una regla de Taylor basada en el IPC, en la versión para economías pequeñas y abiertas de Galí y Monacelli (2005), aplicada a Chile por Caputo y Herrera (2013):
-
-```
-i_t = r̄ + φ_π · E_t(π_t+1) + φ_y · x_t
-```
-
-- `i_t`: TPM.
-- `r̄`: tasa natural de interés real.
-- `E_t(π_t+1)`: inflación esperada (EEE).
-- `x_t`: brecha de actividad (filtro HP sobre el Imacec).
-- `φ_π`, `φ_y`: respuestas de la TPM a la inflación esperada y a la brecha.
-
-Como referencia, Caputo y Herrera (2013) estiman para economías emergentes con metas de inflación una respuesta de largo plazo a la inflación esperada de 1,174, a la brecha de 0,656 y al Fed Funds Rate de 1,2, con un componente inercial importante. Apablaza y Ortiz (2024) confirman, con datos chilenos, que la inercia es el componente que más incide en la TPM.
-
-### Próximos pasos
-
-- **Relaciones:** correlaciones y rezagos entre la TPM y sus predictores, con discusión de los mecanismos.
-- **Modelos:** la regla de Taylor estimada (con inercia y Fed Funds Rate) y un ARIMA/SARIMA para la TPM.
-- **Evaluación fuera de muestra:** período de evaluación separado, comparación contra una caminata aleatoria y sin sesgo de anticipación, considerando los rezagos de publicación de cada serie.
-- **Proyección:** trayectoria de la TPM a 6–24 meses con riesgos al alza y a la baja.
-- **Monitor Power BI:** conectado a `data/base.db`, con niveles, variaciones en 12 meses, proyección frente a la trayectoria efectiva y un panel tipo "semáforo".
+| Hito 3: Entrega final | Semana 13 | Informe final (PDF), presentación con dashboard en Python generado desde la base, y repositorio reproducible (tag `hito-3`) | En curso: modelos, evaluación, proyección y dashboard listos; informe y presentación en desarrollo |
+| Defensa | Semanas 14–15 | Presentación de 15 minutos apoyada en el dashboard y preguntas | Pendiente |
 
 ---
 
