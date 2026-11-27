@@ -38,10 +38,12 @@ PASOS = [
     ("Regla de Taylor: evaluación",              ["-m", "modelos.evaluacion_taylor"]),
     ("Regla de Taylor: validación temporal",     ["-m", "modelos.validacion_temporal"]),
     ("Regla de Taylor: horizontes 6-12-24",      ["-m", "modelos.evaluacion_horizontes"]),
+    ("Regla de Taylor: significancia (HAC)",     ["-m", "modelos.significancia_taylor"]),
     ("Regla de Taylor: proyección a 24 meses",   ["-m", "modelos.proyeccion_taylor"]),
     ("Gráfico de comparación de Taylor",         ["-m", "modelos.grafico_taylor"]),
     ("Gráfico de proyección de Taylor",          ["-m", "modelos.grafico_proyeccion_taylor"]),
     ("Comparación de modelos",                   ["-m", "modelos.comparacion_modelos"]),
+    ("Proyección con escenarios y carga a la base", ["-m", "modelos.proyeccion_escenarios"]),
 ]
 
 
