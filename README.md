@@ -382,6 +382,8 @@ A un mes la TPM casi no cambia, así que es muy difícil superar la regla de "la
 
 La regla obtiene menor RMSE que el benchmark en los cortes de 2021, 2022 y 2023, períodos de grandes movimientos de la TPM. En 2024, con la tasa casi estable, gana el benchmark: **la regla aporta más cuando la política monetaria está en movimiento.**
 
+**Archivo de resultados:** al ejecutar `python -m modelos.validacion_temporal`, el programa genera automáticamente `salidas/resultados/validacion_temporal_taylor.csv`, que contiene las métricas MAE y RMSE de Taylor y la caminata aleatoria para los cuatro cortes de evaluación.
+
 ---
 
 ## 11. Proyección a 24 meses y escenarios de riesgo
