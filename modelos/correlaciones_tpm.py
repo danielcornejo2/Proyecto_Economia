@@ -1,7 +1,7 @@
 """
 correlaciones_tpm.py
 --------------------
-Persona 1 - Día 1: correlaciones cruzadas y rezagos entre la TPM y sus determinantes.
+correlaciones cruzadas y rezagos entre la TPM y sus determinantes.
 
 Pregunta que responde: ¿qué variables se mueven ANTES que la TPM, con cuántos
 meses de anticipación y en qué dirección? Eso conecta los datos con los
