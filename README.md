@@ -629,6 +629,7 @@ Termina con `[OK] Proyecto completo ejecutado` en un par de minutos.
 | `No hay conexión a internet con la API` | Revisar la red o desactivar la VPN. |
 | `[ERROR] Fallaron estas series` | La base no se creó. Volver a ejecutar `carga.py`; si persiste, revisar el código de esa serie con `--buscar`. |
 | `No existe data/base.db` | Se usó `--sin-descarga` sin haber creado la base: correr primero `python carga.py`. |
+| `Opción no reconocida` | Se ingresó un argumento incorrecto. Usar `python ejecutar_todo.py --sin-descarga` o ejecutar sin opciones. El programa se detiene antes de iniciar la descarga. |
 | `ModuleNotFoundError: No module named 'modelos'` | El script se ejecutó como archivo. Usar `python -m modelos.nombre_del_script` desde la raíz del proyecto, o `python ejecutar_todo.py`. |
 | `ModuleNotFoundError: No module named 'statsmodels'` | Falta instalar dependencias: `pip install -r requirements.txt`. |
 
