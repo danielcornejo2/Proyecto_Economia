@@ -80,6 +80,8 @@ detalle = pd.DataFrame({
     "error_ingenuo": (real - pred_ingenuo).to_numpy(),
     "error_abs_taylor": (real - pred_taylor).abs().to_numpy(),
     "error_abs_ingenuo": (real - pred_ingenuo).abs().to_numpy(),
+    "error_cuadrado_taylor": ((real - pred_taylor) ** 2).to_numpy(),
+    "error_cuadrado_ingenuo": ((real - pred_ingenuo) ** 2).to_numpy(),
 })
 
 detalle.to_csv(
