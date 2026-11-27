@@ -22,9 +22,9 @@ Si la correlación más alta aparece en k = 6, X se mueve unos 6 meses antes que
 Uso (desde la raíz del proyecto):
     python modelos/correlaciones_tpm.py
 Resultados:
-    hito_3/resultados/correlaciones_tpm.csv   tabla completa (variable x rezago)
-    hito_3/resultados/resumen_rezagos.csv     rezago de mayor correlación por variable
-    hito_3/graficos/correlaciones_tpm.png     mapa de calor
+    salidas/resultados/correlaciones_tpm.csv   tabla completa (variable x rezago)
+    salidas/resultados/resumen_rezagos.csv     rezago de mayor correlación por variable
+    salidas/graficos/correlaciones_tpm.png     mapa de calor
 """
 
 from __future__ import annotations
@@ -42,8 +42,8 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 from modelos.datos_modelo import leer_consultas, META_INFLACION  # noqa: E402
 
-CARPETA_RESULTADOS = RAIZ / "hito_3" / "resultados"
-CARPETA_GRAFICOS = RAIZ / "hito_3" / "graficos"
+CARPETA_RESULTADOS = RAIZ / "salidas" / "resultados"
+CARPETA_GRAFICOS = RAIZ / "salidas" / "graficos"
 REZAGO_MAXIMO = 24
 
 # Variable -> (nombre para mostrar, signo esperado según el Hito 1)

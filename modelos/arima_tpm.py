@@ -118,7 +118,7 @@ if __name__ == "__main__":
           + ("residuos sin autocorrelación: el modelo captura la dinámica."
              if p_lb > 0.05 else "queda autocorrelación en los residuos: anotarlo como limitación."))
 
-    carpeta = RAIZ / "hito_3" / "resultados"
+    carpeta = RAIZ / "salidas" / "resultados"
     carpeta.mkdir(parents=True, exist_ok=True)
     tabla_aic.round(2).to_csv(carpeta / "seleccion_arima_aic.csv", index=False)
     print(f"\nTabla de AIC guardada en {(carpeta / 'seleccion_arima_aic.csv').relative_to(RAIZ)}")

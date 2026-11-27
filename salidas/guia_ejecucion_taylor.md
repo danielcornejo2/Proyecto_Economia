@@ -90,11 +90,11 @@ utilizando nueve cortes históricos.
 
 Los archivos CSV se guardan en:
 
-hito_3/resultados/
+salidas/resultados/
 
 Los gráficos PNG se guardan en:
 
-hito_3/graficos/
+salidas/graficos/
 
 Los resultados corresponden a un escenario condicionado
 y deben interpretarse junto con sus supuestos y

@@ -28,9 +28,9 @@ plt.grid(alpha=0.3)
 plt.tight_layout()
 
 # Guardar el gráfico para el informe
-carpeta = Path("hito_3/graficos")
+carpeta = Path("salidas/graficos")
 carpeta.mkdir(parents=True, exist_ok=True)
 
 plt.savefig(carpeta / "comparacion_tpm.png", dpi=300)
 plt.close()
-print("Gráfico guardado en hito_3/graficos/comparacion_tpm.png")
+print("Gráfico guardado en salidas/graficos/comparacion_tpm.png")

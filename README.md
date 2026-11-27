@@ -48,7 +48,7 @@
 | Evaluación fuera de muestra contra un benchmark ingenuo, sin sesgo de anticipación | `modelos/datos_modelo.py`, `modelos/evaluacion_*.py`, `modelos/comparacion_modelos.py` | ✓ |
 | Proyección a 6–24 meses con escenarios de riesgo, guardada en la base | `modelos/proyeccion_escenarios.py` → tablas `proyecciones_tpm` y `metricas_modelos` | ✓ |
 | Todo el análisis con un solo comando | `ejecutar_todo.py` | ✓ |
-| Dashboard en Python generado desde la base | `dashboard/dashboard_tpm.py` → `hito_3/dashboard/` (3 láminas) | ✓ Se regenera con `ejecutar_todo.py` |
+| Dashboard en Python generado desde la base | `dashboard/dashboard_tpm.py` → `salidas/dashboard/` (3 láminas) | ✓ Se regenera con `ejecutar_todo.py` |
 | Versión exploratoria del dashboard en Power BI (Hito 2) | `dashboard/monitor_tpm.pbix` | Complementaria; ver [Dashboard](#13-dashboard) |
 | Informe final (PDF) y presentación | — | En desarrollo |
 | Entrega con tag | Tag `hito-2` (Hito 2); tag `hito-3` al cierre | Hito 3 pendiente |
@@ -97,7 +97,7 @@ TPM (% anual), **valor de fin de mes**, desde agosto de 2001. Se descarga la ser
 Todo el flujo es programático: no hay descargas manuales ni pasos intermedios a mano.
 
 ```
-APIs (BCCh + FRED) ──▶ CSV en data/raw/ ──▶ SQLite data/base.db ──▶ sql/consultas.sql ──▶ modelos/ y notebooks/ ──▶ hito_3/resultados, graficos y dashboard
+APIs (BCCh + FRED) ──▶ CSV en data/raw/ ──▶ SQLite data/base.db ──▶ sql/consultas.sql ──▶ modelos/ y notebooks/ ──▶ salidas/resultados, graficos y dashboard
    extraccion/*.py                           bd/crear_base.py         JOIN · GROUP BY ·      (Python)                 + tablas proyecciones_tpm y
                                                                        función de ventana                              metricas_modelos en la base
 └──────── carga.py: descarga y crea la base ────────┘
@@ -263,13 +263,13 @@ El notebook `notebooks/02_analisis_coyuntura.ipynb` lee las consultas, aplica la
 | Desempleo (cambio 12m) | 24 meses | +0,69 (−0,34 en el mismo mes) | El efecto contemporáneo tiene el signo esperado; el de 24 meses refleja el ciclo económico |
 | Dólar (var. 12m) | 9 meses | −0,33 | Signo contrario al esperado: el dólar sube en crisis globales, cuando el BCCh baja la tasa |
 
-Correlación no implica causalidad: la tabla muestra qué se mueve junto y en qué orden. Resultados en `hito_3/resultados/correlaciones_tpm.csv` y `resumen_rezagos.csv`; gráfico en `hito_3/graficos/correlaciones_tpm.png`.
+Correlación no implica causalidad: la tabla muestra qué se mueve junto y en qué orden. Resultados en `salidas/resultados/correlaciones_tpm.csv` y `resumen_rezagos.csv`; gráfico en `salidas/graficos/correlaciones_tpm.png`.
 
 ---
 
 ## 9. Modelos
 
-Todos los scripts están en `modelos/` y se ejecutan en orden con `python ejecutar_todo.py`. Las tablas quedan en `hito_3/resultados/` y los gráficos en `hito_3/graficos/`.
+Todos los scripts están en `modelos/` y se ejecutan en orden con `python ejecutar_todo.py`. Las tablas quedan en `salidas/resultados/` y los gráficos en `salidas/graficos/`.
 
 ### Datos para los modelos, sin sesgo de anticipación
 
@@ -345,7 +345,7 @@ RMSE; entre paréntesis, el R² fuera de muestra frente a la caminata aleatoria:
 - **La regla de Taylor solo mejora al benchmark a 6 meses.** A 12 y 24 meses pierde, porque sus determinantes se mantienen fijos en el valor del corte y no recogen los cambios posteriores en inflación y actividad (por ejemplo, el shock de 2021–2022).
 - **A 24 meses ningún modelo supera con claridad a la caminata aleatoria.**
 
-Archivos: `hito_3/resultados/comparacion_modelos_resumen.csv`, `comparacion_modelos_detalle.csv` y `hito_3/graficos/comparacion_modelos_rmse.png`. La evaluación solo de la regla a estos horizontes está en `modelos/evaluacion_horizontes.py`.
+Archivos: `salidas/resultados/comparacion_modelos_resumen.csv`, `comparacion_modelos_detalle.csv` y `salidas/graficos/comparacion_modelos_rmse.png`. La evaluación solo de la regla a estos horizontes está en `modelos/evaluacion_horizontes.py`.
 
 ### Evaluaciones complementarias
 
@@ -367,7 +367,7 @@ A un mes gana la caminata aleatoria; el ARIMA gana a 6 y 12 meses.
 | Caminata aleatoria | 0,024 | 0,077 |
 | ARIMA(2,1,0), como referencia | 0,048 | 0,089 |
 
-A un mes la TPM casi no cambia, así que es muy difícil superar la regla de "la tasa se mantiene". El gráfico `hito_3/graficos/comparacion_tpm.png` muestra que ambos modelos siguen la trayectoria de la TPM, con mayores diferencias para la regla en algunos meses.
+A un mes la TPM casi no cambia, así que es muy difícil superar la regla de "la tasa se mantiene". El gráfico `salidas/graficos/comparacion_tpm.png` muestra que ambos modelos siguen la trayectoria de la TPM, con mayores diferencias para la regla en algunos meses.
 
 **Regla de Taylor, validación temporal** (`modelos/validacion_temporal.py`): se reestima la regla con cuatro cortes (diciembre de 2021, 2022, 2023 y 2024) y se evalúan los pronósticos a un mes de los 12 meses siguientes a cada corte.
 
@@ -421,7 +421,7 @@ Los tamaños de los shocks son ilustrativos: muestran hacia dónde y cuánto se 
 - **A la baja, una recesión global** llevaría la TPM a cerca de 1,5 %.
 - **El intervalo del ARIMA** confirma que la incertidumbre a 24 meses es muy alta.
 
-Archivos: `hito_3/resultados/proyeccion_escenarios.csv`, `hito_3/graficos/proyeccion_escenarios.png` y la tabla `proyecciones_tpm` de la base. La proyección de la regla en el escenario base también se genera por separado con `modelos/proyeccion_taylor.py` (`proyeccion_taylor_24m.csv` y `proyeccion_tpm_24m.png`).
+Archivos: `salidas/resultados/proyeccion_escenarios.csv`, `salidas/graficos/proyeccion_escenarios.png` y la tabla `proyecciones_tpm` de la base. La proyección de la regla en el escenario base también se genera por separado con `modelos/proyeccion_taylor.py` (`proyeccion_taylor_24m.csv` y `proyeccion_tpm_24m.png`).
 
 Estas trayectorias son proyecciones condicionadas de los modelos, no decisiones anunciadas por el Banco Central.
 
@@ -449,7 +449,7 @@ Estas trayectorias son proyecciones condicionadas de los modelos, no decisiones 
 
 ## 13. Dashboard
 
-El dashboard oficial se genera en Python con `dashboard/dashboard_tpm.py`. El script lee solo desde `data/base.db` (las series, las consultas de `sql/consultas.sql` y las tablas `proyecciones_tpm` y `metricas_modelos`) y escribe tres láminas en `hito_3/dashboard/`, que se usan en la presentación y en el informe. Es el último paso de `ejecutar_todo.py`, así que se actualiza solo cada vez que cambian los datos o los modelos.
+El dashboard oficial se genera en Python con `dashboard/dashboard_tpm.py`. El script lee solo desde `data/base.db` (las series, las consultas de `sql/consultas.sql` y las tablas `proyecciones_tpm` y `metricas_modelos`) y escribe tres láminas en `salidas/dashboard/`, que se usan en la presentación y en el informe. Es el último paso de `ejecutar_todo.py`, así que se actualiza solo cada vez que cambian los datos o los modelos.
 
 ```bash
 python -m dashboard.dashboard_tpm
@@ -459,21 +459,21 @@ python -m dashboard.dashboard_tpm
 
 Indicadores clave con su último dato (TPM, inflación IPC, expectativa EEE, brecha de actividad y dólar) y la evolución desde 2015 de la TPM y sus determinantes. El punto marca el último dato de cada serie.
 
-![Coyuntura](hito_3/dashboard/1_coyuntura.png)
+![Coyuntura](salidas/dashboard/1_coyuntura.png)
 
 ### Lámina 2: Semáforo de los determinantes
 
-Cada determinante se clasifica como **En rango**, **Atención** o **Alerta** según reglas explícitas, definidas en `REGLAS_SEMAFORO` dentro del script. Por ejemplo, la inflación está en rango entre 2 % y 4 % (el rango de tolerancia del BCCh) y en atención entre 1 % y 5 %. Cada estado lleva ícono y texto, no solo color. La tabla también se guarda en `hito_3/dashboard/semaforo.csv`.
+Cada determinante se clasifica como **En rango**, **Atención** o **Alerta** según reglas explícitas, definidas en `REGLAS_SEMAFORO` dentro del script. Por ejemplo, la inflación está en rango entre 2 % y 4 % (el rango de tolerancia del BCCh) y en atención entre 1 % y 5 %. Cada estado lleva ícono y texto, no solo color. La tabla también se guarda en `salidas/dashboard/semaforo.csv`.
 
 A septiembre de 2026, la inflación IPC (4,17 %) y la expectativa EEE (3,30 %) están en atención, y el desempleo, que subió 1,27 pp en 12 meses, está en alerta. Los demás determinantes están en rango.
 
-![Semáforo](hito_3/dashboard/2_semaforo.png)
+![Semáforo](salidas/dashboard/2_semaforo.png)
 
 ### Lámina 3: Proyección y desempeño de los modelos
 
 A la izquierda, la TPM efectiva y su proyección a 24 meses: ARIMA(2,1,0) con su intervalo de 80 %, los cuatro escenarios de la regla de Taylor y la caminata aleatoria como benchmark. El ARIMA y la caminata aleatoria coinciden en 4,50 %, y los escenarios base y convergencia de la regla casi se superponen. A la derecha, el error fuera de muestra (RMSE) de cada modelo a 6, 12 y 24 meses, de la comparación principal (ARIMA(2,1,2), cortes 2016–2024).
 
-![Proyección](hito_3/dashboard/3_proyeccion.png)
+![Proyección](salidas/dashboard/3_proyeccion.png)
 
 ### Versión exploratoria en Power BI
 
@@ -659,7 +659,7 @@ Proyecto_Economia/
 ├── dashboard/
 │   ├── dashboard_tpm.py      # dashboard oficial en Python: lee la base y genera las láminas
 │   └── monitor_tpm.pbix      # versión exploratoria en Power BI (Hito 2)
-├── hito_3/                   # resultados generados por el código y material del informe
+├── salidas/                   # resultados generados por el código y material del informe
 │   ├── resultados/           # tablas (CSV), ver detalle abajo
 │   ├── graficos/             # gráficos de los modelos (PNG)
 │   ├── dashboard/            # láminas del dashboard (PNG) y semáforo (CSV)
@@ -676,7 +676,7 @@ Proyecto_Economia/
 
 **No se suben al repositorio:** `.env`, `data/`, la base `*.db` ni `.venv/`. El `.gitignore` los excluye; cada integrante los genera en su computador.
 
-### Contenido de `hito_3/`
+### Contenido de `salidas/`
 
 Todo lo que está en `resultados/`, `graficos/` y `dashboard/` se regenera con `python ejecutar_todo.py`; no se edita a mano.
 
@@ -698,13 +698,13 @@ Todo lo que está en `resultados/`, `graficos/` y `dashboard/` se regenera con `
 | `graficos/proyeccion_escenarios.png` | `proyeccion_escenarios.py` | Proyección por modelo y escenario |
 | `dashboard/1_coyuntura.png`, `2_semaforo.png`, `3_proyeccion.png`, `semaforo.csv` | `dashboard_tpm.py` | Láminas del dashboard |
 
-Los archivos `.md` de `hito_3/` (`introduccion.md`, `datos.md`, `resultados_taylor.md`, `analisis_proyecciones.md`, `estructura_informe.md` y `guia_ejecucion_taylor.md`) son borradores de trabajo; su contenido está integrado en este README.
+Los archivos `.md` de `salidas/` (`introduccion.md`, `datos.md`, `resultados_taylor.md`, `analisis_proyecciones.md`, `estructura_informe.md` y `guia_ejecucion_taylor.md`) son borradores de trabajo; su contenido está integrado en este README.
 
 ---
 
 ## 16. Informe final
 
-El informe final se entrega en PDF y sigue la estructura sugerida por la guía del Hito 3. Cada sección se apoya en las secciones de este README y en los resultados de `hito_3/`:
+El informe final se entrega en PDF y sigue la estructura sugerida por la guía del Hito 3. Cada sección se apoya en las secciones de este README y en los resultados de `salidas/`:
 
 | Sección del informe | Contenido | Fuente en el repositorio |
 |---|---|---|
@@ -715,7 +715,7 @@ El informe final se entrega en PDF y sigue la estructura sugerida por la guía d
 | 5. Metodología de pronóstico | Modelos, especificación, transformaciones y rezagos, división temporal, benchmark | Secciones 8 y 9 |
 | 6. Resultados y evaluación fuera de muestra | Tabla de métricas, comparación con el benchmark e interpretación | Sección 10 |
 | 7. Discusión, limitaciones y conclusiones | Proyección, escenarios de riesgo, respuesta a la pregunta y mejoras posibles | Secciones 11 y 12 |
-| 8. Referencias y anexos | Fuentes, referencias, tablas y gráficos complementarios | Sección 19 y `hito_3/` |
+| 8. Referencias y anexos | Fuentes, referencias, tablas y gráficos complementarios | Sección 19 y `salidas/` |
 
 Las cifras y conclusiones del informe y de la presentación deben coincidir con los resultados reproducibles del repositorio. El dashboard en Python se incorpora a la presentación.
 

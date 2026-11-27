@@ -22,9 +22,9 @@ Requisito: correr antes carga.py y modelos/proyeccion_escenarios.py
 Uso (desde la raíz del proyecto):
     python -m dashboard.dashboard_tpm
 Resultados:
-    hito_3/dashboard/1_coyuntura.png
-    hito_3/dashboard/2_semaforo.png
-    hito_3/dashboard/3_proyeccion.png
+    salidas/dashboard/1_coyuntura.png
+    salidas/dashboard/2_semaforo.png
+    salidas/dashboard/3_proyeccion.png
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ from modelos.datos_modelo import (RUTA_BD, META_INFLACION, brecha_tiempo_real,  
 
 warnings.filterwarnings("ignore")
 
-CARPETA = RAIZ / "hito_3" / "dashboard"
+CARPETA = RAIZ / "salidas" / "dashboard"
 DESDE = "2015-01-01"
 FUENTE = "Fuente: BCCh y FRED, base del proyecto (corte 2026-09-30)."
 
@@ -355,5 +355,5 @@ if __name__ == "__main__":
 
     print("Semáforo de los determinantes:\n")
     print(semaforo.round(2).to_string(index=False))
-    print("\nDashboard generado en hito_3/dashboard/: 1_coyuntura.png, 2_semaforo.png, "
+    print("\nDashboard generado en salidas/dashboard/: 1_coyuntura.png, 2_semaforo.png, "
           "3_proyeccion.png y semaforo.csv")

@@ -57,10 +57,10 @@ La Regla de Taylor obtiene un menor RMSE que el modelo ingenuo en los cortes de 
 
 ## 4. Interpretación del gráfico
 
-El gráfico `hito_3/graficos/comparacion_tpm.png` muestra que ambos modelos siguen la trayectoria de la TPM. La Regla de Taylor presenta mayores diferencias en algunos meses, coherentes con sus mayores MAE y RMSE en el período 2025–2026.
+El gráfico `salidas/graficos/comparacion_tpm.png` muestra que ambos modelos siguen la trayectoria de la TPM. La Regla de Taylor presenta mayores diferencias en algunos meses, coherentes con sus mayores MAE y RMSE en el período 2025–2026.
 
 ## 5. Limitaciones
 
 - Las evaluaciones mantienen constantes las variables explicativas en su último valor, no sus valores futuros. Esto perjudica a la regla en horizontes largos.
 - El período 2025–2026 cubre un solo ciclo de política monetaria (recortes graduales), con pocos meses de cambio.
-- La comparación con los demás modelos a 6, 12 y 24 meses está en `hito_3/resultados/comparacion_modelos_resumen.csv` y en `analisis_proyecciones.md`.
+- La comparación con los demás modelos a 6, 12 y 24 meses está en `salidas/resultados/comparacion_modelos_resumen.csv` y en `analisis_proyecciones.md`.

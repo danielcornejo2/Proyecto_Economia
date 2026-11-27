@@ -15,7 +15,7 @@ panel = armar_panel()
 historico = panel.loc["2024-01-01":, "tpm"]
 
 # Proyecciones calculadas anteriormente
-ruta = Path("hito_3/resultados/proyeccion_taylor_24m.csv")
+ruta = Path("salidas/resultados/proyeccion_taylor_24m.csv")
 proyecciones = pd.read_csv(ruta, parse_dates=["mes"])
 
 # Última TPM observada
@@ -72,7 +72,7 @@ fig.autofmt_xdate()
 fig.tight_layout()
 
 # Guardamos el gráfico
-carpeta = Path("hito_3/graficos")
+carpeta = Path("salidas/graficos")
 carpeta.mkdir(parents=True, exist_ok=True)
 
 ruta_grafico = carpeta / "proyeccion_tpm_24m.png"

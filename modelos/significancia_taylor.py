@@ -25,7 +25,7 @@ Se estima con dos muestras:
 Uso (desde la raíz del proyecto):
     python -m modelos.significancia_taylor
 Resultado:
-    hito_3/resultados/significancia_taylor.csv
+    salidas/resultados/significancia_taylor.csv
 """
 
 from __future__ import annotations
@@ -105,7 +105,7 @@ if __name__ == "__main__":
           "brecha 0,656; Fed Funds 1,2.")
     print("Lectura: p < 0,05 = la variable tiene un efecto estadísticamente distinto de cero.")
 
-    carpeta = RAIZ / "hito_3" / "resultados"
+    carpeta = RAIZ / "salidas" / "resultados"
     carpeta.mkdir(parents=True, exist_ok=True)
     pd.concat(resultados).round(4).to_csv(carpeta / "significancia_taylor.csv", index=False)
-    print("\nGuardado en hito_3/resultados/significancia_taylor.csv")
+    print("\nGuardado en salidas/resultados/significancia_taylor.csv")
