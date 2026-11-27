@@ -1,112 +1,80 @@
-
 # Análisis de las proyecciones de la TPM
+
+Cifras actualizadas con la TPM de fin de mes desde agosto de 2001 y con la base cortada al 30 de septiembre de 2026. Todas se reproducen con `python ejecutar_todo.py`. Las proyecciones y las métricas de evaluación también quedan guardadas en `data/base.db`, en las tablas `proyecciones_tpm` y `metricas_modelos`.
 
 ## 1. Metodología
 
-Se proyectó la Tasa de Política Monetaria (TPM) de Chile mediante una Regla de Taylor estimada con datos mensuales provenientes de la base utilizada en el Hito 2.
+Se proyectó la TPM de Chile a 24 meses con tres modelos:
 
-La estimación considera la TPM rezagada, la brecha de inflación esperada, la brecha de actividad y la tasa de fondos federales de Estados Unidos.
+- **Regla de Taylor** estimada con toda la muestra (TPM rezagada, brecha de inflación esperada, brecha de actividad y Fed Funds). La proyección es recursiva: cada valor proyectado se usa como la TPM rezagada del mes siguiente.
+- **ARIMA(2,1,0)** de la TPM, elegido por AIC, con un intervalo de confianza de 80 %.
+- **Caminata aleatoria** (modelo ingenuo): la TPM se mantiene en su último valor.
 
-Para construir las proyecciones se utilizó la información disponible hasta septiembre de 2026, último mes de la muestra.
+La última TPM observada (septiembre de 2026) es 4,50 %.
 
-La TPM futura se calculó de manera recursiva: cada valor proyectado se utilizó como TPM rezagada del mes siguiente.
+## 2. Escenarios
 
-## 2. Supuestos de proyección
+La Regla de Taylor se proyectó en cuatro escenarios para sus determinantes. Los tamaños de los shocks son ilustrativos.
 
-Se construyó un escenario de referencia en el que las variables explicativas se mantienen constantes en sus últimos valores disponibles.
-
-Este supuesto permite analizar la trayectoria implícita en la Regla de Taylor, pero no representa necesariamente la evolución futura de la economía.
-
-Por lo tanto, los resultados deben interpretarse como proyecciones condicionadas y no como estimaciones definitivas de las decisiones del Banco Central.
+| Escenario | Supuesto |
+|---|---|
+| Base | Determinantes constantes en su último valor |
+| Convergencia | Expectativas vuelven a la meta de 3 % y la brecha de actividad se cierra en 12 meses |
+| Riesgo al alza | Expectativas 1 pp sobre su nivel actual (por ejemplo, por una depreciación o un shock de petróleo) y la Fed sube 0,5 pp |
+| Riesgo a la baja | Actividad 2 pp bajo su tendencia (recesión global), expectativas −0,5 pp y la Fed recorta 1 pp |
 
 ## 3. Resultados
 
-La última TPM observada, correspondiente a septiembre de 2026, fue de 4,50 %.
+| Modelo / escenario | 6 meses (mar-2027) | 12 meses (sep-2027) | 24 meses (sep-2028) |
+|---|---:|---:|---:|
+| Taylor: base | 4,21 % | 4,05 % | 3,90 % |
+| Taylor: convergencia | 4,21 % | 4,04 % | 3,89 % |
+| Taylor: riesgo al alza | 5,75 % | 6,47 % | 7,10 % |
+| Taylor: riesgo a la baja | 3,07 % | 2,26 % | 1,54 % |
+| ARIMA(2,1,0) | 4,50 % | 4,50 % | 4,50 % |
+| Intervalo 80 % del ARIMA | 2,64 % a 6,36 % | 1,23 % a 7,77 % | 0,50 % a 9,72 % |
+| Caminata aleatoria | 4,50 % | 4,50 % | 4,50 % |
 
-| Horizonte | Fecha | Regla de Taylor | Modelo ingenuo |
-|---|---|---:|---:|
-| 6 meses | Marzo 2027 | 4,1876 % | 4,50 % |
-| 12 meses | Septiembre 2027 | 4,0029 % | 4,50 % |
-| 24 meses | Septiembre 2028 | 3,8291 % | 4,50 % |
-
-Los resultados muestran una trayectoria descendente de la TPM bajo el escenario considerado.
-
-A seis meses, la tasa proyectada alcanza aproximadamente 4,19 %. A doce meses disminuye a 4,00 % y, al finalizar el horizonte de veinticuatro meses, llega a 3,83 %.
-
-En contraste, el modelo ingenuo mantiene constante la TPM en 4,50 % durante todo el período.
+El límite inferior del intervalo del ARIMA no baja de 0,5 %, el mínimo histórico de la TPM (2020).
 
 ## 4. Interpretación económica
 
-La Regla de Taylor sugiere una reducción gradual de la TPM bajo los supuestos establecidos.
+- **Escenario base: recortes graduales.** Con las expectativas y la actividad actuales, la regla indica espacio para bajar la TPM de 4,50 % a cerca de 3,9 % en dos años. El escenario de convergencia da casi lo mismo, porque las brechas actuales ya están cerca de cero.
+- **El ARIMA proyecta una tasa estable** (4,50 %). La TPM no se ha movido en los últimos meses y el modelo no detecta una tendencia que extrapolar.
+- **El principal riesgo es la inflación esperada.** Como la regla responde con fuerza a las expectativas (efecto de largo plazo de 3,4), si se desanclan 1 pp la TPM debería subir a cerca de 7 % en dos años.
+- **A la baja, una recesión global** llevaría la TPM a cerca de 1,5 %.
+- El intervalo del ARIMA confirma que la incertidumbre a 24 meses es muy alta.
 
-Esta trayectoria está condicionada por los coeficientes estimados y por la elevada persistencia de la tasa, reflejada en el coeficiente positivo de la TPM rezagada.
+Estas trayectorias son proyecciones condicionadas del modelo, no decisiones anunciadas por el Banco Central.
 
-La disminución proyectada no debe interpretarse como una decisión anunciada por el Banco Central, sino como el resultado del modelo econométrico bajo un escenario específico.
+## 5. Evaluación fuera de muestra a distintos horizontes
 
-## 5. Evaluación y limitaciones
+Se hicieron nueve ejercicios de pronóstico, con cortes en septiembre de cada año entre 2016 y 2024. En cada corte, cada modelo se estimó solo con los datos disponibles hasta esa fecha y pronosticó a 6, 12 y 24 meses. En la Regla de Taylor, las variables explicativas se mantienen en su valor del corte.
 
-En la evaluación fuera de muestra a un mes, realizada entre enero de 2025 y septiembre de 2026, el modelo ingenuo obtuvo menores errores que la Regla de Taylor.
+RMSE en puntos porcentuales de TPM; entre paréntesis, el R² OOS frente al modelo ingenuo (positivo = le gana):
 
-| Modelo | MAE | RMSE |
-|---|---:|---:|
-| Regla de Taylor | 0,1035 | 0,1241 |
-| Modelo ingenuo | 0,0310 | 0,0715 |
+| Horizonte | Ingenuo | Regla de Taylor | ARIMA(2,1,2) |
+|---|---:|---:|---:|
+| 6 meses | 2,036 | 1,828 (+0,19) | 1,427 (+0,51) |
+| 12 meses | 3,467 | 3,594 (−0,07) | 2,968 (+0,27) |
+| 24 meses | 5,008 | 6,648 (−0,76) | 4,967 (+0,02) |
 
-Por lo tanto, aunque la Regla de Taylor permite estudiar la relación entre la TPM y sus determinantes macroeconómicos, no superó al benchmark ingenuo en esa evaluación.
+El ARIMA de esta evaluación es (2,1,2), porque su orden se eligió solo con datos hasta septiembre de 2016.
 
-También se realizaron cuatro cortes de validación temporal, cuyos resultados muestran que el desempeño relativo de los modelos varía según el período analizado.
+### Interpretación
 
-Es importante distinguir esta evaluación a un mes de las proyecciones recursivas a 6, 12 y 24 meses. Estas últimas todavía no cuentan con una evaluación fuera de muestra específica para cada horizonte.
-
-Finalmente, mantener constantes las variables explicativas constituye una simplificación. Los cambios futuros en inflación, actividad o condiciones financieras internacionales podrían modificar las proyecciones.
-
-## 6. Conclusión preliminar
-
-La Regla de Taylor proyecta una disminución gradual de la TPM, desde 4,50 % en septiembre de 2026 hasta aproximadamente 3,83 % en septiembre de 2028.
-
-Sin embargo, los resultados deben interpretarse con cautela debido a los supuestos del escenario y al desempeño del modelo frente al benchmark ingenuo.
-
-Estas proyecciones deberán complementarse con los resultados de los demás modelos y la evaluación conjunta del proyecto.
-
-
-## 7. Evaluación fuera de muestra a distintos horizontes
-
-Para evaluar la capacidad predictiva de la Regla de Taylor a mediano y largo plazo, se realizaron nueve ejercicios de pronóstico con fechas de corte entre septiembre de 2016 y septiembre de 2024.
-
-En cada corte se estimaron los coeficientes utilizando los datos disponibles hasta esa fecha. Posteriormente, se construyeron pronósticos recursivos a 6, 12 y 24 meses, manteniendo constantes las variables explicativas en sus últimos valores disponibles al momento de la proyección.
-
-Los pronósticos se compararon con un modelo ingenuo, que supone que la TPM permanece constante en el valor observado al inicio de cada período.
-
-### Resultados de la evaluación
-
-| Horizonte | MAE Taylor | RMSE Taylor | MAE ingenuo | RMSE ingenuo |
-|---|---:|---:|---:|---:|
-| 6 meses | 1,1648 | 1,5547 | 1,0311 | 1,6430 |
-| 12 meses | 2,7167 | 3,6135 | 2,0944 | 3,4113 |
-| 24 meses | 4,5252 | 6,8272 | 3,6767 | 4,9713 |
-
-Las métricas se expresan en puntos porcentuales de la TPM.
-
-### Interpretación económica
-
-A seis meses, los resultados son mixtos: el modelo ingenuo presenta un menor MAE, mientras que la Regla de Taylor alcanza un menor RMSE.
-
-A doce meses, el modelo ingenuo registra menores errores en ambas métricas. Esta diferencia también se observa a veinticuatro meses, donde la Regla de Taylor presenta errores considerablemente mayores.
-
-En general, los resultados muestran que la Regla de Taylor no supera de manera consistente al modelo ingenuo en los horizontes analizados.
-
-Una posible explicación es la persistencia de la TPM y la dificultad de proyectar su trayectoria durante períodos de cambios importantes en las condiciones económicas.
+- **El ARIMA es el modelo con menor error a 6 y 12 meses** y le gana al modelo ingenuo en ambos horizontes.
+- **La Regla de Taylor solo mejora al ingenuo a 6 meses.** A 12 y 24 meses pierde, principalmente porque sus determinantes se mantienen fijos en el valor del corte y no recogen los cambios posteriores en inflación y actividad (por ejemplo, el shock de 2021–2022).
+- **A 24 meses ningún modelo supera con claridad al ingenuo.**
 
 ### Limitaciones de la evaluación
 
-Los pronósticos se construyeron manteniendo constantes las variables explicativas. Por ello, los resultados dependen de este supuesto y no representan necesariamente el desempeño de un modelo que incorpore pronósticos de inflación, actividad y tasas internacionales.
+- Son nueve cortes por horizonte, con períodos de pronóstico que se superponen. Hay poca evidencia independiente y no se aplicó un test formal de significancia de las diferencias.
+- Mantener constantes las variables explicativas es una simplificación. Un modelo que incorpore pronósticos de inflación, actividad y tasas internacionales podría mejorar el desempeño de la regla.
+- El desempeño pasado no garantiza el desempeño futuro.
 
-Además, la evaluación considera nueve cortes temporales, con períodos de pronóstico que pueden superponerse. Esto limita la cantidad de evidencia independiente disponible para comparar los modelos.
+## 6. Conclusión
 
-Los resultados permiten evaluar el desempeño histórico del procedimiento utilizado, pero no garantizan que el comportamiento futuro sea similar.
+La Regla de Taylor es útil para explicar la TPM: sus coeficientes son significativos y coherentes con el principio de Taylor. También permite construir escenarios de riesgo. Como herramienta de pronóstico, en cambio, el ARIMA es más preciso a 6 y 12 meses.
 
-### Implicancias para el proyecto
-
-La Regla de Taylor resulta útil para analizar la relación entre la política monetaria y sus determinantes macroeconómicos. Sin embargo, su capacidad predictiva debe contrastarse con modelos alternativos.
-
-Por esta razón, las proyecciones futuras a 6, 12 y 24 meses se presentan como un escenario condicionado, cuya interpretación deberá complementarse con los demás modelos del Hito 3.
+La lectura conjunta sugiere una TPM entre 3,9 % y 4,5 % en el escenario central de los próximos dos años, con el desanclaje de las expectativas de inflación como principal riesgo al alza.
