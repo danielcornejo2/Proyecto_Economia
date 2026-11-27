@@ -12,8 +12,12 @@ JOIN series AS s ON s.id_serie = o.id_serie
 JOIN temas  AS t ON t.id_tema  = s.id_tema
 ORDER BY t.tema, s.nombre, o.fecha;
 
--- 2) GROUP BY: lleva todas las series a frecuencia mensual. Las diarias (TPM, dólar, tasas) se promedian dentro del mes. 
---Las que ya son mensuales quedan igual, porqueel promedio deunn solo dato es ese dato. n_obs nos permite detectar meses incompletos
+-- 2) GROUP BY: valor de cada serie por mes y número de observaciones válidas en el mes.
+--    Los datos ya llegan mensuales a la base: la conversión se hace en Python con a_mensual
+--    (promedio del mes para las tasas de bonos y último dato del mes para la TPM).
+--    Por eso AVG de un solo dato es ese mismo dato. n_obs sirve de control de calidad:
+--    1 = hay dato ese mes, 0 = mes sin dato.
+
 SELECT s.nombre,
        s.frecuencia,
        strftime('%Y-%m', o.fecha) AS mes,
@@ -45,7 +49,7 @@ SELECT s.nombre,
        ROUND(
            CASE s.tipo
                WHEN 'tasa'      THEN m.valor - LAG(m.valor, 12) OVER w
-               WHEN 'variacion' THEN CASE WHEN COUNT(*) OVER w12 = 12
+               WHEN 'variacion' THEN CASE WHEN COUNT(m.valor) OVER w12 = 12
                                           THEN 100.0 * (EXP(SUM(LN(1 + m.valor/100.0)) OVER w12) - 1)
                                      END
                ELSE 100.0 * (m.valor / LAG(m.valor, 12) OVER w - 1)

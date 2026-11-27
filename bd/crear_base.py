@@ -54,8 +54,8 @@ TEMAS = {
 # y que el nombre del CSV). El código de la API se toma del propio CSV al cargar.
 CATALOGO = {
     # ----- Banco Central de Chile -----
-    "tpm": MetaSerie("BCCh", "Mensual", "Política monetaria", "tasa", "% anual",
-                     "Tasa de política monetaria, promedio mensual"),
+    "tpm": MetaSerie("BCCh", "Diaria", "Política monetaria", "tasa", "% anual",
+                     "Tasa de política monetaria, último dato del mes (fin de mes)"),
     "ipc": MetaSerie("BCCh", "Mensual", "Precios", "variacion", "% variación mensual",
                      "IPC general, variación mensual"),
     "ipc_sae": MetaSerie("BCCh", "Mensual", "Precios", "variacion", "% variación mensual",

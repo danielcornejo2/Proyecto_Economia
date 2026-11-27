@@ -16,6 +16,9 @@ from dotenv import load_dotenv
 
 URL_API = "https://si3.bcentral.cl/SieteRestWS/SieteRestWS.ashx"
 FECHA_INICIO = "2000-01-01"          # al menos 10 años de historia, según la pauta
+# CAMBIO TPM: antes de agosto de 2001 la TPM estaba indexada a la UF (tasa real),
+# así que no es comparable con la TPM nominal actual. Se descarga desde esa fecha.
+INICIO_TPM = "2001-08-01"
 RAIZ = Path(__file__).resolve().parent.parent      # carpeta raíz del proyecto
 CARPETA_SALIDA = RAIZ / "data" / "raw" / "bcch"    # cada fuente tiene su propia carpeta
 
@@ -23,10 +26,12 @@ CARPETA_SALIDA = RAIZ / "data" / "raw" / "bcch"    # cada fuente tiene su propia
 # Las series con código None están pendientes: el script las omite (sin marcar error)
 # hasta que se complete su código. Para encontrarlo, usar el texto sugerido con --buscar.
 SERIES = {
-    # 1. Tasa de política monetaria, promedio mensual
+    # 1. Tasa de política monetaria (CAMBIO TPM: serie diaria → valor de fin de mes)
     #    Por qué: es la variable objetivo que se proyecta; sus valores pasados también la
     #    explican, porque el Banco Central ajusta la tasa de forma gradual (inercia).
-    "tpm": "F022.TPM.TIN.D001.NO.Z.M",
+    #    Se usa el valor de fin de mes y no el promedio: la TPM cambia en las reuniones de
+    #    política monetaria, y si cambia a mitad de mes el promedio da una tasa que nunca existió.
+    "tpm": "F022.TPM.TIN.D001.NO.Z.D",
     # 2. IPC general, variación mensual (%)
     #    Por qué: si la inflación se aleja de la meta de 3 %, el Banco Central ajusta la TPM
     #    en la misma dirección (signo +). Se publica con rezago: usarla rezagada en los modelos.
@@ -37,8 +42,9 @@ SERIES = {
     #    presiones inflacionarias son persistentes y la TPM tiende a subir (signo +).
     "ipc_sae": "F074.IPCSAE.VAR.Z.EP23.Z.M",
     # 4. Imacec, índice original, referencia 2018
-    #    Por qué: con el filtro HP se obtiene la brecha de actividad de la regla de Taylor;
-    #    una economía sobre su potencial presiona la inflación y la TPM sube (signo +).
+    #    Por qué: desestacionalizado y con el filtro HP (ambos en el notebook) se obtiene la brecha
+    #    de actividad de la regla de Taylor; una economía sobre su potencial presiona la inflación
+    #    y la TPM sube (signo +).
     "imacec": "F032.IMC.IND.Z.Z.EP18.Z.Z.0.M",
     # 5. Tipo de cambio dólar observado, promedio mensual
     #    Por qué: canal cambiario; una depreciación del peso encarece los bienes importados,
@@ -56,7 +62,8 @@ SERIES = {
     #     Por qué: es una tasa real de largo plazo; muestra cómo se transmite la TPM al
     #     costo del crédito de largo plazo (contexto).
     "tasa_bcu_10": "F022.BUF.TIS.AN10.UF.Z.D",
-    # 8. Tasa de desocupación nacional (%), INE
+    # 8. Tasa de desocupación nacional (%), INE. Trimestre móvil (promedio de 3 meses), con fecha
+    #    del último mes del trimestre: el dato de marzo es enero–marzo. Disponible desde 2010-03.
     #    Por qué: mide la holgura del mercado laboral; más desempleo implica menos presión
     #    salarial e inflacionaria, lo que favorece recortes de la TPM (signo −).
     "desempleo": "F049.DES.TAS.INE9.10.M",
@@ -131,11 +138,12 @@ def descargar_serie(codigo, usuario, clave, desde=FECHA_INICIO):
     return df[["fecha", "valor"]]
 
 
-def a_mensual(df):
+def a_mensual(df, metodo="mean"):
     """
-    Convierte la serie a frecuencia mensual (promedio de cada mes), con fecha el día 1.
-    Las series que ya son mensuales no cambian; las diarias o quincenales quedan como
-    promedio mensual. Un mes sin ningún dato válido queda como faltante.
+    Convierte la serie a frecuencia mensual, con fecha el día 1.
+    metodo="mean": promedio del mes (por defecto). metodo="last": último dato válido del mes.
+    Las series que ya son mensuales no cambian; las diarias o quincenales quedan agregadas
+    según el método. Un mes sin ningún dato válido queda como faltante.
     """
     if df.empty:
         return df
@@ -143,7 +151,7 @@ def a_mensual(df):
         df.set_index("fecha")["valor"]
         .astype(float)
         .resample("MS")
-        .mean()
+        .agg(metodo)  # CAMBIO TPM: antes era .mean(); "mean" sigue siendo el valor por defecto
         .reset_index()
     )
     return mensual[["fecha", "valor"]]
@@ -187,7 +195,11 @@ def main():
 
         print(f"Descargando {nombre} ({codigo})...")
         try:
-            df = a_mensual(descargar_serie(codigo, usuario, clave))
+            # CAMBIO TPM: la TPM parte en 2001-08 y toma el valor de fin de mes;
+            # el resto de las series sigue igual (desde FECHA_INICIO, promedio mensual).
+            desde = INICIO_TPM if nombre == "tpm" else FECHA_INICIO
+            metodo = "last" if nombre == "tpm" else "mean"
+            df = a_mensual(descargar_serie(codigo, usuario, clave, desde), metodo)
             df["serie"] = nombre
             df["codigo"] = codigo
             df.to_csv(CARPETA_SALIDA / f"{nombre}.csv", index=False)
