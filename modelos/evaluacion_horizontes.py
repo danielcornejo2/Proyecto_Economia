@@ -32,16 +32,19 @@ for corte in cortes:
         panel, corte.strftime("%Y-%m-%d")
     )
 
+    # TPM observada al corte
     ultimo = panel.loc[corte]
     tpm_inicial = float(ultimo["tpm"])
+
+    # Variables disponibles para pronosticar el mes siguiente
+    fila_siguiente = panel.loc[corte + pd.offsets.MonthBegin(1)]
 
     # Mantenemos constantes las variables explicativas
     componente_fijo = float(coeficientes["constante"])
 
     for variable in variables:
         componente_fijo += float(
-            coeficientes[variable] * ultimo[variable]
-        )
+            coeficientes[variable] * fila_siguiente[variable]        )
 
     # Pronósticos recursivos de hasta 24 meses
     tpm_proyectada = tpm_inicial
