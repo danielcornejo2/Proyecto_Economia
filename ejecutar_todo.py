@@ -49,8 +49,16 @@ PASOS = [
 
 
 def main():
-    pasos = PASOS[1:] if "--sin-descarga" in sys.argv else PASOS
-    if not (RAIZ / "data" / "base.db").exists() and pasos is not PASOS:
+    # Verificar que las opciones sean válidas
+    opciones = set(sys.argv[1:])
+    if opciones - {"--sin-descarga"}:
+        sys.exit("Opción no reconocida. Usa --sin-descarga o ejecuta sin opciones.")
+
+    sin_descarga = "--sin-descarga" in opciones
+    pasos = PASOS[1:] if sin_descarga else PASOS
+
+    # Comprobar que exista la base si se omite la descarga
+    if sin_descarga and not (RAIZ / "data" / "base.db").exists():
         sys.exit("No existe data/base.db: corre primero sin --sin-descarga.")
 
     inicio = time.time()
