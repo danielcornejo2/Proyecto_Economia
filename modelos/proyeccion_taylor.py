@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from modelos.datos_modelo import armar_panel
+from modelos.datos_modelo import armar_panel, fila_pronostico
 from modelos.regla_taylor import estimar_regla_taylor
 
 
@@ -18,9 +18,10 @@ coeficientes, _ = estimar_regla_taylor(
     panel, corte.strftime("%Y-%m-%d")
 )
 
-# Últimos valores conocidos
-ultimo = panel.iloc[-1]
-tpm_anterior = float(ultimo["tpm"])
+# Información disponible al cierre del mes de corte
+ultimo = fila_pronostico()
+tpm_inicial = float(ultimo["tpm_lag1"])
+tpm_anterior = tpm_inicial
 
 # Escenario inicial: variables económicas constantes
 variables = [
@@ -57,7 +58,7 @@ for horizonte, fecha in enumerate(fechas, start=1):
         "mes": fecha,
         "horizonte": horizonte,
         "tpm_taylor": float(tpm_proyectada),
-        "tpm_ingenua": float(ultimo["tpm"]),
+        "tpm_ingenua": tpm_inicial,
     })
 
     tpm_anterior = float(tpm_proyectada)
@@ -71,7 +72,7 @@ resumen = proyecciones[
 
 print("Proyección de TPM: escenario de variables constantes")
 print("Fecha de corte:", corte.strftime("%Y-%m"))
-print("TPM inicial:", ultimo["tpm"])
+print("TPM inicial:", tpm_inicial)
 resumen = resumen.copy()
 resumen[["tpm_taylor", "tpm_ingenua"]] = resumen[
     ["tpm_taylor", "tpm_ingenua"]
