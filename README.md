@@ -20,11 +20,12 @@
 6. [Consultas SQL](#consultas-sql)
 7. [Análisis de coyuntura](#análisis-de-coyuntura)
 8. [Modelos y resultados (Hito 3)](#modelos-y-resultados-hito-3)
-9. [Cómo reproducir el proyecto](#cómo-reproducir-el-proyecto)
-10. [Estructura del repositorio](#estructura-del-repositorio)
-11. [Trabajo en equipo con Git](#trabajo-en-equipo-con-git)
-12. [Hitos del proyecto](#hitos-del-proyecto)
-13. [Referencias](#referencias)
+9. [Dashboard](#dashboard)
+10. [Cómo reproducir el proyecto](#cómo-reproducir-el-proyecto)
+11. [Estructura del repositorio](#estructura-del-repositorio)
+12. [Trabajo en equipo con Git](#trabajo-en-equipo-con-git)
+13. [Hitos del proyecto](#hitos-del-proyecto)
+14. [Referencias](#referencias)
 
 ---
 
@@ -41,7 +42,8 @@
 | Evaluación fuera de muestra contra un benchmark ingenuo, sin sesgo de anticipación | `modelos/datos_modelo.py`, `modelos/evaluacion_arima.py`, `modelos/evaluacion_taylor.py`, `modelos/comparacion_modelos.py` | ✓ |
 | Proyección a 6–24 meses con escenarios de riesgo, guardada en la base | `modelos/proyeccion_escenarios.py` → tablas `proyecciones_tpm` y `metricas_modelos` | ✓ |
 | Todo el análisis con un solo comando | `ejecutar_todo.py` | ✓ |
-| Dashboard en Python generado desde la base | — | En desarrollo |
+| Dashboard en Python generado desde la base | `dashboard/dashboard_tpm.py` → `hito_3/dashboard/` (3 láminas) | ✓ Se regenera con `ejecutar_todo.py` |
+| Versión exploratoria del dashboard en Power BI (Hito 2) | `dashboard/monitor_tpm.pbix` | Complementaria; ver [Dashboard](#dashboard) |
 | Informe final y presentación | — | En desarrollo |
 | Entrega con tag | Tag `hito-2` (Hito 2); tag `hito-3` al cierre | Hito 3 pendiente |
 
@@ -313,6 +315,47 @@ Los tamaños de los shocks son ilustrativos. **Conclusión:** el escenario centr
 
 ---
 
+## Dashboard
+
+El dashboard oficial del proyecto se genera en Python con `dashboard/dashboard_tpm.py`. El script lee solo desde `data/base.db` (las series, las consultas de `sql/consultas.sql` y las tablas `proyecciones_tpm` y `metricas_modelos`) y escribe tres láminas en `hito_3/dashboard/`, que se usan en la presentación y en el informe. Es el último paso de `ejecutar_todo.py`, así que se actualiza solo cada vez que cambian los datos o los modelos.
+
+```bash
+python -m dashboard.dashboard_tpm
+```
+
+### Lámina 1: Coyuntura
+
+Indicadores clave con su último dato (TPM, inflación IPC, expectativa EEE, brecha de actividad y dólar) y la evolución desde 2015 de la TPM y sus determinantes. El punto marca el último dato de cada serie.
+
+![Coyuntura](hito_3/dashboard/1_coyuntura.png)
+
+### Lámina 2: Semáforo de los determinantes
+
+Cada determinante se clasifica como **En rango**, **Atención** o **Alerta** según reglas explícitas, definidas en `REGLAS_SEMAFORO` dentro del script. Por ejemplo, la inflación está en rango entre 2 % y 4 % (el rango de tolerancia del Banco Central) y en atención entre 1 % y 5 %. Cada estado lleva ícono y texto, no solo color. La tabla también se guarda en `hito_3/dashboard/semaforo.csv`.
+
+A septiembre de 2026, la inflación IPC (4,17 %) y la expectativa EEE (3,30 %) están en atención, y el desempleo, que subió 1,27 pp en 12 meses, está en alerta. Los demás determinantes están en rango.
+
+![Semáforo](hito_3/dashboard/2_semaforo.png)
+
+### Lámina 3: Proyección y desempeño de los modelos
+
+A la izquierda, la TPM efectiva y su proyección a 24 meses: ARIMA con su intervalo de 80 %, los cuatro escenarios de la regla de Taylor y la caminata aleatoria como benchmark. A la derecha, el error fuera de muestra (RMSE) de cada modelo a 6, 12 y 24 meses.
+
+![Proyección](hito_3/dashboard/3_proyeccion.png)
+
+### Versión exploratoria en Power BI
+
+En el Hito 2 se construyó una primera versión del monitor en Power BI (`dashboard/monitor_tpm.pbix`), siguiendo el plan original del curso. Se conserva en el repositorio como versión exploratoria. Para abrirla se necesita Power BI Desktop.
+
+Para la entrega final se pasó a un dashboard en Python por cuatro razones:
+
+1. **Requisito de la entrega final.** La guía del Hito 3 pide que el dashboard se genere con código a partir de la base SQL y que se pueda regenerar sin pasos manuales.
+2. **Reproducibilidad.** El dashboard en Python se rehace con `python ejecutar_todo.py` en cualquier computador con Python. El archivo de Power BI requiere el programa instalado y actualizar los datos a mano.
+3. **Conexión con los modelos.** El script lee directamente las proyecciones y las métricas que los modelos guardan en la base, de modo que las cifras del dashboard, del informe y de la presentación son siempre las mismas.
+4. **Control de versiones.** El `.pbix` es un archivo binario, así que Git no puede mostrar qué cambió entre versiones. El script es texto, y cada cambio queda registrado y se puede revisar en un pull request.
+
+---
+
 ## Cómo reproducir el proyecto
 
 ### Requisitos
@@ -415,6 +458,7 @@ Corre todo el proyecto en orden y se detiene indicando el paso si alguno falla:
 4. Regla de Taylor: estimación, significancia, evaluaciones y proyección.
 5. Comparación de modelos.
 6. Proyección con escenarios, que guarda las tablas `proyecciones_tpm` y `metricas_modelos` en la base.
+7. Dashboard: las tres láminas en `hito_3/dashboard/`.
 
 Termina con `[OK] Proyecto completo ejecutado` en un par de minutos.
 
@@ -455,6 +499,9 @@ Proyecto_Economia/
 │   └── consultas.sql         # consultas comentadas: JOIN, GROUP BY y función de ventana
 ├── notebooks/
 │   └── 02_analisis_coyuntura.ipynb   # análisis de coyuntura
+├── dashboard/
+│   ├── dashboard_tpm.py      # dashboard oficial en Python: lee la base y genera las láminas
+│   └── monitor_tpm.pbix      # versión exploratoria en Power BI (Hito 2)
 ├── modelos/
 │   ├── datos_modelo.py           # panel para los modelos: rezagos de publicación y brecha HP en tiempo real
 │   ├── correlaciones_tpm.py      # correlaciones cruzadas y rezagos de la TPM
@@ -472,6 +519,7 @@ Proyecto_Economia/
 ├── hito_3/
 │   ├── resultados/               # tablas de resultados (CSV)
 │   ├── graficos/                 # gráficos (PNG)
+│   ├── dashboard/                # láminas del dashboard (PNG) y semáforo (CSV)
 │   └── *.md                      # textos para el informe: introducción, datos, resultados y proyecciones
 ├── data/                     # se genera al ejecutar carga.py; NO se sube a GitHub
 │   ├── raw/bcch/, raw/fred/  #   un CSV por serie
@@ -540,7 +588,7 @@ git push origin hito-3
 |---|---|---|---|
 | Hito 1: Propuesta | Semana 4 | Variable objetivo, pregunta de proyección, series tentativas, mecanismos y repositorio | Entregado |
 | Hito 2: Avance de datos | Semana 8 | Extracción por API, base relacional poblada, consultas SQL y análisis de coyuntura inicial (tag `hito-2`) | Entregado |
-| Hito 3: Entrega final | Semana 13 | Informe final (PDF), presentación con dashboard en Python generado desde la base, y repositorio reproducible (tag `hito-3`) | En curso: modelos, evaluación y proyección listos; dashboard, informe y presentación en desarrollo |
+| Hito 3: Entrega final | Semana 13 | Informe final (PDF), presentación con dashboard en Python generado desde la base, y repositorio reproducible (tag `hito-3`) | En curso: modelos, evaluación, proyección y dashboard listos; informe y presentación en desarrollo |
 | Defensa | Semanas 14–15 | Presentación de 15 minutos apoyada en el dashboard y preguntas | Pendiente |
 
 ---
