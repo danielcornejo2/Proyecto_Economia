@@ -43,7 +43,7 @@ import pandas as pd
 
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
-from modelos.datos_modelo import (RUTA_BD, META_INFLACION, brecha_tiempo_real,  # noqa: E402
+from modelos.tpm.datos_modelo import (RUTA_BD, META_INFLACION, brecha_tiempo_real,  # noqa: E402
                                   leer_consultas)
 
 warnings.filterwarnings("ignore")
