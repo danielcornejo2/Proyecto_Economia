@@ -8,8 +8,11 @@ Sirve de punto de comparación para la regla de Taylor de la Persona 2:
 si Taylor no le gana a un ARIMA, las variables macro no están aportando.
 
 Pasos:
-  1. ¿La TPM es estacionaria? Test de Dickey-Fuller aumentado (ADF) en nivel y
-     en primera diferencia. Si el nivel no es estacionario, se trabaja con d = 1.
+    1. Evaluar la estacionariedad mediante ADF y KPSS en nivel y primera
+     diferencia. El ADF contrasta raíz unitaria; KPSS contrasta
+     estacionariedad. Se adopta d = 1 para modelar los cambios de la TPM,
+     dada su elevada persistencia, aunque el ADF también rechaza raíz
+     unitaria en nivel. Se compara d = 0 como análisis de robustez.
   2. Elegir p y q: se prueban todas las combinaciones de 0 a 3 y se elige la de
      menor AIC, usando SOLO el período de entrenamiento (hasta FIN_ENTRENAMIENTO).
   3. Estimar el ARIMA elegido y revisar los residuos (test de Ljung-Box).
@@ -36,7 +39,7 @@ from pathlib import Path
 import pandas as pd
 from statsmodels.stats.diagnostic import acorr_ljungbox
 from statsmodels.tsa.arima.model import ARIMA
-from statsmodels.tsa.stattools import acf, adfuller
+from statsmodels.tsa.stattools import acf, adfuller, kpss
 
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
@@ -58,14 +61,28 @@ def cargar_tpm() -> pd.Series:
 
 
 def test_estacionariedad(serie: pd.Series) -> pd.DataFrame:
-    """Test ADF en nivel y en primera diferencia. p < 0,05 => estacionaria."""
+    """Contrasta estacionariedad mediante ADF y KPSS."""
     filas = {}
-    for nombre, datos in {"Nivel": serie, "Primera diferencia": serie.diff().dropna()}.items():
-        estadistico, p_valor, *_ = adfuller(datos, autolag="AIC")
-        filas[nombre] = {"estadistico_ADF": estadistico, "p_valor": p_valor,
-                         "estacionaria (p<0,05)": "sí" if p_valor < 0.05 else "no"}
-    return pd.DataFrame(filas).T
 
+    datos_prueba = {
+        "Nivel": serie,
+        "Primera diferencia": serie.diff().dropna(),
+    }
+
+    for nombre, datos in datos_prueba.items():
+        estadistico_adf, p_adf, *_ = adfuller(datos, autolag="AIC")
+        estadistico_kpss, p_kpss, *_ = kpss(
+            datos, regression="c", nlags="auto"
+        )
+
+        filas[nombre] = {
+            "ADF": estadistico_adf,
+            "p_ADF": p_adf,
+            "KPSS": estadistico_kpss,
+            "p_KPSS": p_kpss,
+        }
+
+    return pd.DataFrame(filas).T
 
 def elegir_orden(serie: pd.Series, d: int = 1, maximo: int = MAXIMO_P_Q) -> tuple[tuple, pd.DataFrame]:
     """Prueba ARIMA(p, d, q) para p, q en 0..maximo y devuelve el de menor AIC."""
@@ -93,8 +110,11 @@ if __name__ == "__main__":
     print(f"Entrenamiento: hasta {FIN_ENTRENAMIENTO[:7]} ({len(entrenamiento)} meses)\n")
 
     # 1. Estacionariedad
-    print("1) Test de Dickey-Fuller aumentado (ADF)")
+    print("1) Pruebas de estacionariedad (ADF y KPSS)")
     print(test_estacionariedad(entrenamiento).round(3).to_string(), "\n")
+    print("ADF: p < 0.05 rechaza raíz unitaria.")
+    print("KPSS: p < 0.05 rechaza estacionariedad.")
+    print("Se compara d=0 como robustez; d=1 no se deduce del ADF.\n")
 
     # ¿Hace falta componente estacional? Autocorrelación en el rezago 12
     ac12 = acf(entrenamiento.diff().dropna(), nlags=12)[12]
