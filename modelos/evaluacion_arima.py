@@ -11,16 +11,18 @@ Diseño (sin sesgo de anticipación):
     la regla de Taylor (Persona 2), para que todos los modelos se comparen igual.
   - Ventana expansiva: para pronosticar un mes, el modelo se re-estima SOLO con los
     datos disponibles hasta el momento del pronóstico. Nunca ve el dato que pronostica.
-  - El orden (p, d, q) se elige UNA vez con el período de entrenamiento
-    (hasta 2024-12) y se mantiene fijo: elegirlo mirando el período de evaluación
-    sería hacer trampa.
+    - El orden (p, d, q) se elige una vez con datos hasta enero de 2024,
+    el primer origen de los pronósticos a 12 meses.
+  - Los órdenes permanecen fijos durante toda la evaluación.
+  - Se comparan d=1 y d=0 como análisis de robustez; sus resultados
+    fuera de muestra no se utilizan para elegir d retrospectivamente.
   - Horizontes de 1, 6 y 12 meses: pronosticar el mes siguiente es fácil (la TPM
     cambia poco); la pregunta del proyecto es a 6-24 meses.
 
 Se comparan dos versiones del ARIMA:
   - d = 1: modela el CAMBIO de la TPM (lo que eligió arima_tpm.py por AIC).
   - d = 0: modela el NIVEL, como sugiere el test ADF (p = 0,008).
-Así la decisión de diferenciar queda respaldada con evidencia fuera de muestra.
+La comparación es una prueba de robustez; no se utiliza para elegir d.
 
 Métricas (en puntos porcentuales de TPM):
   - MAE: error absoluto promedio.
@@ -50,8 +52,7 @@ from statsmodels.tsa.arima.model import ARIMA
 
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
-from modelos.arima_tpm import FIN_ENTRENAMIENTO, cargar_tpm, elegir_orden  # noqa: E402
-
+from modelos.arima_tpm import cargar_tpm, elegir_orden  # noqa: E402
 INICIO_EVALUACION = "2025-01-01"
 FIN_EVALUACION = "2026-09-01"
 HORIZONTES = [1, 6, 12]
@@ -127,14 +128,26 @@ def graficar(tpm: pd.Series, detalle: pd.DataFrame, modelos: list[str], ruta: Pa
 
 if __name__ == "__main__":
     tpm = cargar_tpm()
-    entrenamiento = tpm.loc[:FIN_ENTRENAMIENTO]
 
-    # Órdenes elegidos UNA vez, solo con el entrenamiento
+    # Elegir los órdenes antes de cualquier pronóstico evaluado.
+    # El primer origen es enero de 2024 (12 meses antes de enero de 2025).
+    primer_origen = pd.Timestamp(INICIO_EVALUACION) - pd.DateOffset(
+        months=max(HORIZONTES)
+    )
+    entrenamiento = tpm.loc[:primer_origen]
+
     orden_d1, _ = elegir_orden(entrenamiento, d=1)
     orden_d0, _ = elegir_orden(entrenamiento, d=0)
+
     ordenes = {f"ARIMA{orden_d1}": orden_d1, f"ARIMA{orden_d0}": orden_d0}
     modelos = ["Caminata aleatoria"] + list(ordenes)
-    print("Modelos elegidos con datos hasta", FIN_ENTRENAMIENTO[:7], "->", ", ".join(ordenes))
+
+    print(
+        "Modelos elegidos con datos hasta",
+        primer_origen.strftime("%Y-%m"),
+        "->",
+        ", ".join(ordenes),
+    )
     print("Evaluando (re-estima el modelo para cada mes; demora alrededor de un minuto)...\n")
 
     detalle = pd.concat([pronosticos_fuera_de_muestra(tpm, ordenes, h) for h in HORIZONTES],
