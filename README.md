@@ -473,7 +473,7 @@ python -m dashboard.dashboard_tpm
 
 Indicadores clave con su último dato (TPM, inflación IPC, expectativa EEE, brecha de actividad y dólar) y la evolución desde 2015 de la TPM y sus determinantes. El punto marca el último dato de cada serie.
 
-![Coyuntura](salidas/dashboard/1_coyuntura.png)
+![Coyuntura](docs/imagenes/1_coyuntura.png)
 
 ### Lámina 2: Semáforo de los determinantes
 
@@ -481,13 +481,13 @@ Cada determinante se clasifica como **En rango**, **Atención** o **Alerta** seg
 
 A septiembre de 2026, la inflación IPC (4,17 %) y la expectativa EEE (3,30 %) están en atención, y el desempleo, que subió 1,27 pp en 12 meses, está en alerta. Los demás determinantes están en rango.
 
-![Semáforo](salidas/dashboard/2_semaforo.png)
+![Semáforo](docs/imagenes/2_semaforo.png)
 
 ### Lámina 3: Proyección y desempeño de los modelos
 
 A la izquierda, la TPM efectiva y su proyección a 24 meses: ARIMA(2,1,0) con su intervalo de 80 %, los cuatro escenarios de la regla de Taylor y la caminata aleatoria como benchmark. El ARIMA y la caminata aleatoria proyectan 4,50 % a septiembre de 2028, mientras que la regla de Taylor alcanza 4,36 % en el escenario base y 3,97 % en convergencia. Esta diferencia refleja el efecto de los supuestos macroeconómicos sobre la trayectoria proyectada de la TPM. A la derecha, se presenta el error fuera de muestra (RMSE) de cada modelo a 6, 12 y 24 meses, según la comparación principal (ARIMA(2,1,2), cortes 2016–2024).
 
-![Proyección](salidas/dashboard/3_proyeccion.png)
+![Proyección](docs/imagenes/3_proyeccion.png)
 
 ### Versión exploratoria en Power BI
 
